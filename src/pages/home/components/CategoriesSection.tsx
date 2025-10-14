@@ -1,5 +1,5 @@
 import { Box, Typography, Grid, Skeleton, Card, CardContent } from "@mui/material";
-import { useCategories } from "../hooks/useCategories";
+import { useCategories } from "../../../hooks/useCategories";
 
 export const CategoriesSection = () => {
   const { data: categories, isLoading, error } = useCategories();
