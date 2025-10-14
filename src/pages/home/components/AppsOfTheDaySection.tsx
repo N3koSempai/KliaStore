@@ -1,6 +1,5 @@
 import { Box, Typography, Grid, Card, CardContent, Skeleton } from "@mui/material";
 import { useAppsOfTheWeek } from "../../../hooks/useAppsOfTheWeek";
-import { apiService } from "../../../services/api";
 import type { AppStream } from "../../../types";
 
 interface AppsOfTheDaySectionProps {
@@ -9,15 +8,6 @@ interface AppsOfTheDaySectionProps {
 
 export const AppsOfTheDaySection = ({ onAppSelect }: AppsOfTheDaySectionProps) => {
   const { data, isLoading, error } = useAppsOfTheWeek();
-
-  const handleAppClick = async (appId: string) => {
-    try {
-      const appStream = await apiService.getAppStream(appId);
-      onAppSelect(appStream);
-    } catch (error) {
-      console.error("Error loading app details:", error);
-    }
-  };
 
   return (
     <Box sx={{ mb: 4 }}>
@@ -48,7 +38,7 @@ export const AppsOfTheDaySection = ({ onAppSelect }: AppsOfTheDaySectionProps) =
           data.map((app) => (
             <Grid item xs={12} sm={6} md={4} lg={2.4} key={app.app_id}>
               <Card
-                onClick={() => handleAppClick(app.app_id)}
+                onClick={() => app.appStream && onAppSelect(app.appStream)}
                 sx={{
                   cursor: "pointer",
                   "&:hover": { boxShadow: 3 },

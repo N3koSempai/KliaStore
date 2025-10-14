@@ -11,6 +11,13 @@ interface AppDetailsProps {
 export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
+  // Función para limpiar HTML de la descripción
+  const stripHtml = (html: string) => {
+    const tmp = document.createElement("div");
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || "";
+  };
+
   const handlePrevImage = () => {
     if (app.screenshots && app.screenshots.length > 0) {
       setCurrentImageIndex((prev) =>
@@ -112,7 +119,7 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
       {/* Sección de Screenshots - Carrusel */}
       {app.screenshots && app.screenshots.length > 0 && (
         <Box sx={{ mb: 4 }}>
-          <Typography variant="h6" gutterBottom>
+          <Typography variant="h6" gutterBottom textAlign="center">
             Capturas de pantalla
           </Typography>
           <Box
@@ -229,7 +236,7 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
             Acerca de esta aplicación
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            {app.description}
+            {stripHtml(app.description)}
           </Typography>
         </Box>
       )}
