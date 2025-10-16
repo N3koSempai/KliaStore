@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, ArrowBack } from "@mui/icons-material";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import type { AppStream } from "../../types";
 import { Terminal } from "../../components/Terminal";
 
@@ -15,6 +16,7 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isInstalling, setIsInstalling] = useState(false);
   const [installOutput, setInstallOutput] = useState<string[]>([]);
+  const [installStatus, setInstallStatus] = useState<"idle" | "installing" | "success" | "error">("idle");
 
   // Escuchar eventos de instalación
   useEffect(() => {
@@ -30,8 +32,10 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
       setIsInstalling(false);
       if (event.payload === 0) {
         setInstallOutput((prev) => [...prev, "", "✓ Instalación completada exitosamente."]);
+        setInstallStatus("success");
       } else {
         setInstallOutput((prev) => [...prev, "", `✗ Instalación falló con código: ${event.payload}`]);
+        setInstallStatus("error");
       }
     });
 
@@ -67,6 +71,7 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 
   const handleInstall = async () => {
     setIsInstalling(true);
+    setInstallStatus("installing");
     setInstallOutput([
       "Preparando instalación personalizada...",
       "Descargando referencia de flatpak...",
@@ -79,12 +84,31 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
       });
     } catch (error) {
       setIsInstalling(false);
+      setInstallStatus("error");
       setInstallOutput((prev) => [
         ...prev,
         "",
         `✗ Error al invocar comando: ${error}`,
       ]);
     }
+  };
+
+  const handleDownloadLog = () => {
+    const logContent = installOutput.join("\n");
+    const blob = new Blob([logContent], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `install-log-${app.id}-${new Date().getTime()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleAccept = () => {
+    setInstallStatus("idle");
+    setInstallOutput([]);
   };
 
   return (
@@ -164,15 +188,62 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
         </Button>
       </Box>
 
-      {/* Sección de Screenshots - Carrusel o Terminal */}
+      {/* Sección de Screenshots - Carrusel, Terminal o Resultado */}
       <Box sx={{ mb: 4 }}>
-        {installOutput.length > 0 ? (
+        {installStatus === "installing" ? (
           <>
             <Typography variant="h6" gutterBottom textAlign="center">
               Instalación en progreso
             </Typography>
             <Terminal output={installOutput} isRunning={isInstalling} />
           </>
+        ) : installStatus === "success" || installStatus === "error" ? (
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 3,
+              p: 4,
+            }}
+          >
+            {/* Animación */}
+            <Box sx={{ width: 300, height: 300 }}>
+              <DotLottieReact
+                key={installStatus}
+                src={installStatus === "success"
+                  ? "/src/assets/animations/success.lottie"
+                  : "/src/assets/animations/Error.lottie"}
+                loop={false}
+                autoplay
+              />
+            </Box>
+
+            {/* Mensaje */}
+            <Typography variant="h5" textAlign="center">
+              {installStatus === "success"
+                ? "¡Instalación completada exitosamente!"
+                : "Error en la instalación"}
+            </Typography>
+
+            {/* Botones */}
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <Button
+                variant="outlined"
+                onClick={handleDownloadLog}
+                sx={{ px: 3 }}
+              >
+                Obtener log
+              </Button>
+              <Button
+                variant="contained"
+                onClick={handleAccept}
+                sx={{ px: 3 }}
+              >
+                Aceptar
+              </Button>
+            </Box>
+          </Box>
         ) : (
           app.screenshots &&
           app.screenshots.length > 0 && (
