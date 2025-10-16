@@ -131,7 +131,9 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 	};
 
 	const handleAccept = () => {
-		setInstallStatus("idle");
+		if (installStatus === "error") {
+			setInstallStatus("idle");
+		}
 		setInstallOutput([]);
 	};
 
@@ -201,14 +203,40 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 					variant="contained"
 					size="large"
 					onClick={handleInstall}
+					disabled={
+						installStatus === "installing" || installStatus === "success"
+					}
 					sx={{
 						px: 4,
 						py: 1.5,
 						fontSize: "1rem",
 						fontWeight: "bold",
+						bgcolor:
+							installStatus === "success"
+								? "success.main"
+								: installStatus === "installing"
+									? "grey.600"
+									: "primary.main",
+						"&:hover": {
+							bgcolor:
+								installStatus === "success"
+									? "success.dark"
+									: installStatus === "installing"
+										? "grey.600"
+										: "primary.dark",
+						},
+						"&.Mui-disabled": {
+							bgcolor:
+								installStatus === "success" ? "success.main" : "grey.600",
+							color: "white",
+						},
 					}}
 				>
-					Instalar
+					{installStatus === "installing"
+						? "Installing..."
+						: installStatus === "success"
+							? "Installed"
+							: "Instalar"}
 				</Button>
 			</Box>
 
@@ -241,7 +269,7 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 										: "/src/assets/animations/Error.lottie"
 								}
 								loop={false}
-								autoplay
+								autoplay={true}
 							/>
 						</Box>
 
