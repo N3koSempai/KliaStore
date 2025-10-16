@@ -1,8 +1,8 @@
-use tauri_plugin_shell::ShellExt;
-use tauri::Emitter;
-use tauri_plugin_http::reqwest;
-use std::path::PathBuf;
 use std::fs;
+use std::path::PathBuf;
+use tauri::{Emitter, Manager};
+use tauri_plugin_http::reqwest;
+use tauri_plugin_shell::ShellExt;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -12,10 +12,16 @@ fn greet(name: &str) -> String {
 
 #[tauri::command]
 async fn download_flatpakref(app: tauri::AppHandle, app_id: String) -> Result<String, String> {
-    let url = format!("https://dl.flathub.org/repo/appstream/{}.flatpakref", app_id);
+    let url = format!(
+        "https://dl.flathub.org/repo/appstream/{}.flatpakref",
+        app_id
+    );
 
-    app.emit("install-output", format!("Descargando referencia desde {}", url))
-        .map_err(|e| format!("Failed to emit: {}", e))?;
+    app.emit(
+        "install-output",
+        format!("Descargando referencia desde {}", url),
+    )
+    .map_err(|e| format!("Failed to emit: {}", e))?;
 
     let client = reqwest::Client::new();
     let response = client
@@ -37,11 +43,13 @@ async fn download_flatpakref(app: tauri::AppHandle, app_id: String) -> Result<St
     let cache_dir = std::env::temp_dir();
     let flatpakref_path = cache_dir.join(format!("{}.flatpakref", app_id));
 
-    fs::write(&flatpakref_path, &content)
-        .map_err(|e| format!("Error guardando archivo: {}", e))?;
+    fs::write(&flatpakref_path, &content).map_err(|e| format!("Error guardando archivo: {}", e))?;
 
-    app.emit("install-output", format!("✓ Referencia descargada: {:?}", flatpakref_path))
-        .map_err(|e| format!("Failed to emit: {}", e))?;
+    app.emit(
+        "install-output",
+        format!("✓ Referencia descargada: {:?}", flatpakref_path),
+    )
+    .map_err(|e| format!("Failed to emit: {}", e))?;
 
     Ok(flatpakref_path.to_string_lossy().to_string())
 }
@@ -52,8 +60,11 @@ async fn install_flatpak(app: tauri::AppHandle, app_id: String) -> Result<(), St
     let flatpakref_path = download_flatpakref(app.clone(), app_id.clone()).await?;
 
     // Paso 2: Instalar desde el archivo flatpakref
-    app.emit("install-output", "Iniciando instalación desde archivo local...")
-        .map_err(|e| format!("Failed to emit: {}", e))?;
+    app.emit(
+        "install-output",
+        "Iniciando instalación desde archivo local...",
+    )
+    .map_err(|e| format!("Failed to emit: {}", e))?;
 
     let shell = app.shell();
 
@@ -95,15 +106,82 @@ async fn install_flatpak(app: tauri::AppHandle, app_id: String) -> Result<(), St
     Ok(())
 }
 
+#[tauri::command]
+fn check_first_launch(app: tauri::AppHandle) -> Result<bool, String> {
+    // Get app data directory (compatible with Flatpak)
+    let app_data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
+
+    // Path for config file
+    let config_path = app_data_dir.join("appConf.json");
+
+    // Check if app has been initialized before
+    Ok(!config_path.exists())
+}
+
+#[tauri::command]
+fn initialize_app(app: tauri::AppHandle) -> Result<(), String> {
+    // Get app data directory (compatible with Flatpak)
+    let app_data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
+
+    // Create app data directory if it doesn't exist
+    fs::create_dir_all(&app_data_dir)
+        .map_err(|e| format!("Failed to create app data directory: {}", e))?;
+
+    // Create cacheImages directory
+    let cache_images_dir = app_data_dir.join("cacheImages");
+    fs::create_dir_all(&cache_images_dir)
+        .map_err(|e| format!("Failed to create cacheImages directory: {}", e))?;
+
+    // Path for config file
+    let config_path = app_data_dir.join("appConf.json");
+
+    // Create config file with JSON format
+    let config_content = r#"{
+  "initialized": true,
+  "version": "1.0.0",
+  "firstLaunchCompleted": true
+}"#;
+
+    fs::write(&config_path, config_content)
+        .map_err(|e| format!("Failed to create config file: {}", e))?;
+
+    Ok(())
+}
+
+#[tauri::command]
+fn get_app_data_path(app: tauri::AppHandle, subpath: String) -> Result<String, String> {
+    let app_data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
+
+    let full_path = app_data_dir.join(subpath);
+    Ok(full_path.to_string_lossy().to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_sql::Builder::new().build())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
-        .invoke_handler(tauri::generate_handler![greet, install_flatpak, download_flatpakref])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            install_flatpak,
+            download_flatpakref,
+            check_first_launch,
+            initialize_app,
+            get_app_data_path
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

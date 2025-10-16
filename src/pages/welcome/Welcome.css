@@ -1,0 +1,172 @@
+.welcome-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem;
+}
+
+.welcome-content {
+  max-width: 600px;
+  width: 100%;
+  text-align: center;
+  color: white;
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-content {
+  margin-bottom: 3rem;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slide-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+.slide-description {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  line-height: 1.6;
+}
+
+.slide-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.indicator:hover {
+  background-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.2);
+}
+
+.indicator.active {
+  background-color: white;
+  width: 32px;
+  border-radius: 6px;
+}
+
+.highlight-localfirst {
+  color: #4ade80;
+  font-weight: 700;
+}
+
+.github-link {
+  color: #93c5fd;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.github-link:hover {
+  color: #60a5fa;
+  text-decoration: underline;
+}
+
+.welcome-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+.btn-skip,
+.btn-accept {
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.btn-skip {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  backdrop-filter: blur(10px);
+}
+
+.btn-skip:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-accept {
+  background-color: white;
+  color: #667eea;
+}
+
+.btn-accept:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.btn-skip:disabled,
+.btn-accept:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .slide-title {
+    font-size: 2rem;
+  }
+
+  .slide-description {
+    font-size: 1rem;
+  }
+
+  .welcome-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn-skip,
+  .btn-accept {
+    width: 100%;
+  }
+}
