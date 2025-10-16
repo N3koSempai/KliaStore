@@ -62,3 +62,14 @@ export interface AppStream {
 		url: string;
 	}>;
 }
+
+export interface AppOfTheDayResponse {
+	app_id: string;
+	day: string;
+}
+
+export interface AppOfTheDayWithDetails extends AppOfTheDayResponse {
+	name?: string;
+	icon?: string;
+	appStream?: AppStream;
+}

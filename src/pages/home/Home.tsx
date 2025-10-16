@@ -12,7 +12,7 @@ export const Home = ({ onAppSelect }: HomeProps) => {
 	return (
 		<Container maxWidth="xl">
 			<Box sx={{ py: 4 }}>
-				<FeaturedSection />
+				<FeaturedSection onAppSelect={onAppSelect} />
 				<AppsOfTheDaySection onAppSelect={onAppSelect} />
 				<CategoriesSection />
 			</Box>

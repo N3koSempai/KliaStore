@@ -1,5 +1,6 @@
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import type {
+	AppOfTheDayResponse,
 	AppStream,
 	AppSummary,
 	AppsOfTheWeekResponse,
@@ -86,5 +87,25 @@ export const apiService = {
 
 		const data = await response.json();
 		return data as AppStream;
+	},
+
+	async getAppOfTheDay(): Promise<AppOfTheDayResponse> {
+		const today = getTodayDate();
+		const response = await tauriFetch(
+			`${API_BASE_URL}/app-picks/app-of-the-day/${today}`,
+			{
+				method: "GET",
+				headers: {
+					accept: "application/json",
+				},
+			},
+		);
+
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+
+		const data = await response.json();
+		return data as AppOfTheDayResponse;
 	},
 };
