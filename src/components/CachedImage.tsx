@@ -1,3 +1,4 @@
+import { Skeleton } from "@mui/material";
 import { useEffect, useState } from "react";
 import { imageCacheManager } from "../utils/imageCache";
 
@@ -7,6 +8,8 @@ interface CachedImageProps {
 	alt: string;
 	style?: React.CSSProperties;
 	className?: string;
+	cacheKey?: string; // Si se proporciona, se usa en lugar de appId para el caché
+	variant?: "rectangular" | "circular" | "rounded";
 }
 
 export const CachedImage = ({
@@ -15,9 +18,12 @@ export const CachedImage = ({
 	alt,
 	style,
 	className,
+	cacheKey,
+	variant = "rectangular",
 }: CachedImageProps) => {
 	const [imageSrc, setImageSrc] = useState<string>("");
 	const [isLoading, setIsLoading] = useState(true);
+	const [imageLoaded, setImageLoaded] = useState(false);
 	const [error, setError] = useState(false);
 
 	useEffect(() => {
@@ -26,10 +32,13 @@ export const CachedImage = ({
 		const loadImage = async () => {
 			try {
 				setIsLoading(true);
+				setImageLoaded(false);
 				setError(false);
 
+				// Usar cacheKey si se proporciona, sino usar appId
+				const keyToUse = cacheKey || appId;
 				const cachedPath = await imageCacheManager.getOrCacheImage(
-					appId,
+					keyToUse,
 					imageUrl,
 				);
 
@@ -55,22 +64,43 @@ export const CachedImage = ({
 		return () => {
 			isMounted = false;
 		};
-	}, [appId, imageUrl]);
+	}, [appId, imageUrl, cacheKey]);
 
-	if (isLoading) {
+	// Mostrar skeleton mientras se obtiene la ruta O mientras la imagen se carga en el navegador
+	if (isLoading || !imageLoaded) {
 		return (
-			<div
-				style={{
-					...style,
-					backgroundColor: "#e0e0e0",
-					display: "flex",
-					alignItems: "center",
-					justifyContent: "center",
-				}}
-				className={className}
-			>
-				{/* Placeholder mientras carga */}
-			</div>
+			<>
+				<Skeleton
+					variant={variant}
+					sx={{
+						width: "100%",
+						height: "100%",
+						...style,
+						display: imageLoaded ? "none" : "block",
+					}}
+					className={className}
+					animation="wave"
+				/>
+				{imageSrc && (
+					<img
+						src={imageSrc}
+						alt={alt}
+						style={{
+							...style,
+							display: imageLoaded ? "block" : "none",
+						}}
+						className={className}
+						onLoad={() => setImageLoaded(true)}
+						onError={() => {
+							// Fallback a la URL original si falla cargar la imagen cacheada
+							if (!error) {
+								setImageSrc(imageUrl);
+								setError(true);
+							}
+						}}
+					/>
+				)}
+			</>
 		);
 	}
 
@@ -85,6 +115,7 @@ export const CachedImage = ({
 				if (!error) {
 					setImageSrc(imageUrl);
 					setError(true);
+					setImageLoaded(false);
 				}
 			}}
 		/>

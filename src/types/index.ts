@@ -59,7 +59,14 @@ export interface AppStream {
 		height: string;
 	}>;
 	screenshots?: Array<{
-		url: string;
+		sizes: Array<{
+			width: string;
+			height: string;
+			scale: string;
+			src: string;
+		}>;
+		caption?: string;
+		default?: boolean;
 	}>;
 }
 

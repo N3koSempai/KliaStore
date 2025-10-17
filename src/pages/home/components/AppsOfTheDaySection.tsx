@@ -34,8 +34,8 @@ export const AppsOfTheDaySection = ({
 
 			<Grid container spacing={2}>
 				{isLoading || !data
-					? Array.from(new Array(5)).map((_) => (
-							<Grid item xs={12} sm={6} md={4} lg={2.4} key={uuidv4()}>
+					? Array.from(new Array(6)).map((_) => (
+							<Grid item xs={12} sm={6} md={4} lg={2} key={uuidv4()}>
 								<Card
 									sx={{
 										height: 240,
@@ -64,7 +64,8 @@ export const AppsOfTheDaySection = ({
 								</Card>
 							</Grid>
 						))
-					: data.map((app) => (
+					: [
+							...data.map((app) => (
 							<Grid item xs={12} sm={6} md={4} lg={2.4} key={app.app_id}>
 								<Card
 									onClick={() => app.appStream && onAppSelect(app.appStream)}
@@ -127,7 +128,60 @@ export const AppsOfTheDaySection = ({
 									</CardContent>
 								</Card>
 							</Grid>
-						))}
+						)),
+						// Promoted card
+						<Grid item xs={12} sm={6} md={4} lg={2} key="promoted">
+							<Card
+								sx={{
+									cursor: "pointer",
+									"&:hover": { boxShadow: 3 },
+									height: 240,
+									minWidth: 200,
+									maxWidth: 250,
+									display: "flex",
+									flexDirection: "column",
+									border: "2px dashed",
+									borderColor: "primary.main",
+									bgcolor: "background.paper",
+								}}
+							>
+								<Box
+									sx={{
+										height: 140,
+										bgcolor: "grey.100",
+										display: "flex",
+										alignItems: "center",
+										justifyContent: "center",
+										flexShrink: 0,
+									}}
+								>
+									<Typography
+										variant="h3"
+										color="primary.main"
+										sx={{ opacity: 0.3 }}
+									>
+										+
+									</Typography>
+								</Box>
+								<CardContent
+									sx={{
+										flexGrow: 1,
+										display: "flex",
+										flexDirection: "column",
+										justifyContent: "center",
+										textAlign: "center",
+									}}
+								>
+									<Typography variant="body2" color="text.secondary">
+										Want your app here?
+									</Typography>
+									<Typography variant="body2" color="primary">
+										Contact us
+									</Typography>
+								</CardContent>
+							</Card>
+						</Grid>,
+					]}
 			</Grid>
 		</Box>
 	);

@@ -7,6 +7,7 @@ import { save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { CachedImage } from "../../components/CachedImage";
 import { Terminal } from "../../components/Terminal";
 import type { AppStream } from "../../types";
 
@@ -131,9 +132,7 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 	};
 
 	const handleAccept = () => {
-		if (installStatus === "error") {
-			setInstallStatus("idle");
-		}
+		setInstallStatus("idle");
 		setInstallOutput([]);
 	};
 
@@ -171,9 +170,11 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 						}}
 					>
 						{app.icon ? (
-							<img
-								src={app.icon}
+							<CachedImage
+								appId={app.id}
+								imageUrl={app.icon}
 								alt={app.name}
+								variant="rounded"
 								style={{
 									width: "100%",
 									height: "100%",
@@ -322,15 +323,31 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 										justifyContent: "center",
 									}}
 								>
-									<img
-										src={app.screenshots[currentImageIndex].url}
-										alt={`Screenshot ${currentImageIndex + 1}`}
-										style={{
-											maxWidth: "100%",
-											maxHeight: "100%",
-											objectFit: "contain",
-										}}
-									/>
+									{(() => {
+										const screenshot = app.screenshots[currentImageIndex];
+										// Buscar el tamaño más grande o el primero disponible
+										const largestSize = screenshot.sizes.reduce((prev, current) =>
+											Number.parseInt(prev.width) > Number.parseInt(current.width)
+												? prev
+												: current,
+										);
+										return (
+											<CachedImage
+												appId={app.id}
+												imageUrl={largestSize.src}
+												alt={`Screenshot ${currentImageIndex + 1}`}
+												cacheKey={`${app.id}:::${currentImageIndex + 1}`}
+												variant="rounded"
+												style={{
+													width: "100%",
+													height: "100%",
+													maxWidth: "100%",
+													maxHeight: "100%",
+													objectFit: "contain",
+												}}
+											/>
+										);
+									})()}
 								</Box>
 
 								{/* Controles del carrusel */}

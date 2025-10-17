@@ -256,7 +256,9 @@ async fn download_and_cache_image(
         .map_err(|e| format!("Error reading image bytes: {}", e))?;
 
     // Generar nombre de archivo único usando el app_id
-    let filename = format!("{}.{}", app_id.replace(".", "_"), extension);
+    // Reemplazar caracteres inválidos para nombres de archivo (. y :::)
+    let safe_app_id = app_id.replace(".", "_").replace(":::", "_screenshot_");
+    let filename = format!("{}.{}", safe_app_id, extension);
     let file_path = cache_images_dir.join(&filename);
 
     fs::write(&file_path, &bytes)
