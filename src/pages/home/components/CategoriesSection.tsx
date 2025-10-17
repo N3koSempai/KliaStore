@@ -43,43 +43,32 @@ export const CategoriesSection = ({
 							</Grid>
 						))
 					: categories?.map((category) => (
-							<Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }} key={category}>
+							<Grid size={{ xs: 6, sm: 4, md: 3, lg: 2 }} key={category}>
 								<Card
 									sx={{
 										cursor: "pointer",
-										"&:hover": { boxShadow: 3 },
+										"&:hover": {
+											boxShadow: 3,
+											transform: "translateY(-2px)",
+											transition: "all 0.2s",
+										},
 										height: "100%",
 										display: "flex",
-										flexDirection: "column",
+										alignItems: "center",
+										justifyContent: "center",
+										p: 2,
+										minHeight: 80,
 									}}
 									onClick={() => onCategorySelect(category)}
 								>
-									<Box
-										sx={{
-											height: 120,
-											bgcolor: "grey.300",
-											display: "flex",
-											alignItems: "center",
-											justifyContent: "center",
-											flexShrink: 0,
-										}}
+									<Typography
+										variant="body2"
+										textAlign="center"
+										textTransform="capitalize"
+										sx={{ width: "100%", fontWeight: 500 }}
 									>
-										<Typography variant="caption" color="text.secondary">
-											Imagen
-										</Typography>
-									</Box>
-									<CardContent
-										sx={{ flexGrow: 1, display: "flex", alignItems: "center" }}
-									>
-										<Typography
-											variant="body1"
-											textAlign="center"
-											textTransform="capitalize"
-											sx={{ width: "100%" }}
-										>
-											{category}
-										</Typography>
-									</CardContent>
+										{category}
+									</Typography>
 								</Card>
 							</Grid>
 						))}
