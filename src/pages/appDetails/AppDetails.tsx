@@ -1,6 +1,6 @@
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { ArrowBack, ChevronLeft, ChevronRight } from "@mui/icons-material";
-import { Box, Button, IconButton, Typography } from "@mui/material";
+import { Box, Button, IconButton, Skeleton, Typography } from "@mui/material";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { save } from "@tauri-apps/plugin-dialog";
@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { CachedImage } from "../../components/CachedImage";
 import { Terminal } from "../../components/Terminal";
+import { useAppScreenshots } from "../../hooks/useAppScreenshots";
 import type { AppStream } from "../../types";
 
 interface AppDetailsProps {
@@ -17,6 +18,8 @@ interface AppDetailsProps {
 }
 
 export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
+	const { screenshots, isLoading: isLoadingScreenshots } =
+		useAppScreenshots(app);
 	const [currentImageIndex, setCurrentImageIndex] = useState(0);
 	const [isInstalling, setIsInstalling] = useState(false);
 	const [installOutput, setInstallOutput] = useState<string[]>([]);
@@ -68,17 +71,17 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 	};
 
 	const handlePrevImage = () => {
-		if (app.screenshots && app.screenshots.length > 0) {
+		if (screenshots && screenshots.length > 0) {
 			setCurrentImageIndex((prev) =>
-				prev === 0 ? app.screenshots?.length - 1 : prev - 1,
+				prev === 0 ? screenshots.length - 1 : prev - 1,
 			);
 		}
 	};
 
 	const handleNextImage = () => {
-		if (app.screenshots && app.screenshots.length > 0) {
+		if (screenshots && screenshots.length > 0) {
 			setCurrentImageIndex((prev) =>
-				prev === app.screenshots?.length - 1 ? 0 : prev + 1,
+				prev === screenshots.length - 1 ? 0 : prev + 1,
 			);
 		}
 	};
@@ -296,12 +299,29 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 						</Box>
 					</Box>
 				) : (
-					app.screenshots &&
-					app.screenshots.length > 0 && (
-						<>
-							<Typography variant="h6" gutterBottom textAlign="center">
-								Capturas de pantalla
-							</Typography>
+					<>
+						<Typography variant="h6" gutterBottom textAlign="center">
+							Capturas de pantalla
+						</Typography>
+						{isLoadingScreenshots ? (
+							<Box
+								sx={{
+									position: "relative",
+									width: "100%",
+									maxWidth: 900,
+									margin: "0 auto",
+								}}
+							>
+								<Skeleton
+									variant="rounded"
+									sx={{
+										width: "100%",
+										height: 500,
+									}}
+									animation="wave"
+								/>
+							</Box>
+						) : screenshots && screenshots.length > 0 ? (
 							<Box
 								sx={{
 									position: "relative",
@@ -324,7 +344,7 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 									}}
 								>
 									{(() => {
-										const screenshot = app.screenshots[currentImageIndex];
+										const screenshot = screenshots[currentImageIndex];
 										// Buscar el tamaño más grande o el primero disponible
 										const largestSize = screenshot.sizes.reduce((prev, current) =>
 											Number.parseInt(prev.width) > Number.parseInt(current.width)
@@ -351,7 +371,7 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 								</Box>
 
 								{/* Controles del carrusel */}
-								{app.screenshots.length > 1 && (
+								{screenshots.length > 1 && (
 									<>
 										<IconButton
 											onClick={handlePrevImage}
@@ -395,7 +415,7 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 												mt: 2,
 											}}
 										>
-											{app.screenshots.map((_, index) => (
+											{screenshots.map((_, index) => (
 												<Box
 													key={uuidv4()}
 													onClick={() => setCurrentImageIndex(index)}
@@ -422,8 +442,18 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 									</>
 								)}
 							</Box>
-						</>
-					)
+						) : (
+							<Box
+								sx={{
+									textAlign: "center",
+									py: 4,
+									color: "text.secondary",
+								}}
+							>
+								<Typography>No hay capturas de pantalla disponibles</Typography>
+							</Box>
+						)}
+					</>
 				)}
 			</Box>
 
