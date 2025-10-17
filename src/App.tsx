@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AppDetails } from "./pages/appDetails/AppDetails";
+import { CategoryApps } from "./pages/categoryApps/CategoryApps";
 import { Home } from "./pages/home/Home";
 import { Welcome } from "./pages/welcome/Welcome";
 import { useAppInitialization } from "./hooks/useAppInitialization";
@@ -8,6 +9,7 @@ import "./App.css";
 
 function App() {
 	const [selectedApp, setSelectedApp] = useState<AppStream | null>(null);
+	const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 	const [showWelcome, setShowWelcome] = useState(true);
 	const { isFirstLaunch, isInitializing, error } = useAppInitialization();
 
@@ -55,10 +57,33 @@ function App() {
 	}
 
 	// Show main app
-	return selectedApp ? (
-		<AppDetails app={selectedApp} onBack={() => setSelectedApp(null)} />
-	) : (
-		<Home onAppSelect={setSelectedApp} />
+	if (selectedApp) {
+		return (
+			<AppDetails
+				app={selectedApp}
+				onBack={() => {
+					setSelectedApp(null);
+					setSelectedCategory(null);
+				}}
+			/>
+		);
+	}
+
+	if (selectedCategory) {
+		return (
+			<CategoryApps
+				categoryId={selectedCategory}
+				onBack={() => setSelectedCategory(null)}
+				onAppSelect={setSelectedApp}
+			/>
+		);
+	}
+
+	return (
+		<Home
+			onAppSelect={setSelectedApp}
+			onCategorySelect={setSelectedCategory}
+		/>
 	);
 }
 

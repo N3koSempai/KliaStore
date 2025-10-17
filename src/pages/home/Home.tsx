@@ -6,15 +6,16 @@ import { FeaturedSection } from "./components/FeaturedSection";
 
 interface HomeProps {
 	onAppSelect: (app: AppStream) => void;
+	onCategorySelect: (categoryId: string) => void;
 }
 
-export const Home = ({ onAppSelect }: HomeProps) => {
+export const Home = ({ onAppSelect, onCategorySelect }: HomeProps) => {
 	return (
 		<Container maxWidth="xl">
 			<Box sx={{ py: 4 }}>
 				<FeaturedSection onAppSelect={onAppSelect} />
 				<AppsOfTheDaySection onAppSelect={onAppSelect} />
-				<CategoriesSection />
+				<CategoriesSection onCategorySelect={onCategorySelect} />
 			</Box>
 		</Container>
 	);

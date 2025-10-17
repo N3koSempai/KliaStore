@@ -9,7 +9,13 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { useCategories } from "../../../hooks/useCategories";
 
-export const CategoriesSection = () => {
+interface CategoriesSectionProps {
+	onCategorySelect: (categoryId: string) => void;
+}
+
+export const CategoriesSection = ({
+	onCategorySelect,
+}: CategoriesSectionProps) => {
 	const { data: categories, isLoading, error } = useCategories();
 
 	return (
@@ -46,6 +52,7 @@ export const CategoriesSection = () => {
 										display: "flex",
 										flexDirection: "column",
 									}}
+									onClick={() => onCategorySelect(category)}
 								>
 									<Box
 										sx={{
