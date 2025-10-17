@@ -86,12 +86,15 @@ src/
 - Current allowed URLs: `https://flathub.org/*`, `https://dl.flathub.org/*`
 - Unsafe headers feature enabled in `src-tauri/Cargo.toml` for flexibility
 
-## Image Caching System
+## Caching System
 
-### Overview
+KliaStore implements a two-tier caching system for optimal performance:
+
+### 1. Image Caching
+
 Smart caching system that stores app images locally to reduce bandwidth and improve loading times.
 
-### Architecture
+#### Architecture
 - **Location**: `~/.local/share/com.gatorand.klia-store/cacheImages/`
 - **Index File**: `index.json` - Maps `appId` to cached image filename
 - **Image Files**: Named using pattern `{appId}.{extension}`
@@ -136,13 +139,92 @@ Tauri commands:
    - Found → Return cached path directly
    - Skip download entirely
 
-### File Format Detection
+#### File Format Detection
 Automatically detects image type from HTTP `Content-Type` header:
 - `image/png` → `.png`
 - `image/jpeg` → `.jpg`
 - `image/svg+xml` → `.svg`
 - `image/webp` → `.webp`
 - Default → `.png`
+
+### 2. Database Caching
+
+Intelligent daily caching for app data to minimize API calls and improve performance.
+
+#### Architecture
+- **Database**: SQLite (`~/.local/share/com.gatorand.klia-store/kliastore.db`)
+- **Tables**:
+  - `destacados`: Stores app of the day data
+  - `apps_of_the_week`: Stores weekly featured apps
+  - `cache_metadata`: Tracks last update dates per section
+
+#### Cache Strategy
+The system uses date-based cache invalidation:
+1. **On App Launch**: Check if cached data is from current day
+2. **Same Day**: Load from SQLite database (no API calls)
+3. **New Day**: Fetch from API and update database
+
+#### Components
+
+**Database Cache Manager** (`src/utils/dbCache.ts`):
+- `DBCacheManager`: Singleton managing all DB cache operations
+- Key methods:
+  - `shouldUpdateSection(sectionName)`: Returns true if data is from a previous day
+  - `getCachedAppOfTheDay()`: Retrieves cached app of the day
+  - `cacheAppOfTheDay(app)`: Stores app of the day with current date
+  - `getCachedAppsOfTheWeek()`: Retrieves cached weekly apps
+  - `cacheAppsOfTheWeek(apps)`: Stores weekly apps with current date
+  - `updateSectionDate(sectionName)`: Updates last_update_date in cache_metadata
+
+**Database Schema**:
+```sql
+-- App of the day
+CREATE TABLE destacados (
+  app_id TEXT PRIMARY KEY,
+  name TEXT,
+  icon TEXT,
+  summary TEXT,
+  description TEXT,
+  data TEXT NOT NULL,  -- JSON with full app details
+  cached_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Apps of the week
+CREATE TABLE apps_of_the_week (
+  app_id TEXT PRIMARY KEY,
+  position INTEGER,
+  name TEXT,
+  icon TEXT,
+  data TEXT NOT NULL,  -- JSON with full app details
+  cached_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Cache metadata (tracks update dates)
+CREATE TABLE cache_metadata (
+  section_name TEXT PRIMARY KEY,
+  last_update_date TEXT NOT NULL,  -- YYYY-MM-DD format
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+#### Cache Flow Example (App of the Day)
+1. **User opens app**
+2. `useAppOfTheDay` hook calls `dbCacheManager.shouldUpdateSection("appOfTheDay")`
+3. Check `cache_metadata` for last_update_date
+4. **If same day**:
+   - Load from `destacados` table
+   - Return cached data (no API call)
+5. **If different day**:
+   - Call Flathub API
+   - Store in `destacados` table
+   - Update `cache_metadata` with current date
+   - Return fresh data
+
+#### Benefits
+- **Reduced API Calls**: Only 1 API call per day per section (instead of every app launch)
+- **Faster Load Times**: SQLite queries are instant vs network requests
+- **Offline Support**: Can show cached data even without internet
+- **Bandwidth Savings**: Minimal data transfer for daily usage
 
 ## Key Implementation Details
 

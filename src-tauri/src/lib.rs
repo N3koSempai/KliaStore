@@ -1,5 +1,4 @@
 use std::fs;
-use std::path::PathBuf;
 use tauri::{Emitter, Manager};
 use tauri_plugin_http::reqwest;
 use tauri_plugin_shell::ShellExt;

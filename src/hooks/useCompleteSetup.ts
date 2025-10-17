@@ -38,6 +38,40 @@ export async function completeSetup() {
       )
     `);
 
+		// Tabla para app destacada (app of the day)
+		await db.execute(`
+      CREATE TABLE IF NOT EXISTS destacados (
+        app_id TEXT PRIMARY KEY,
+        name TEXT,
+        icon TEXT,
+        summary TEXT,
+        description TEXT,
+        data TEXT NOT NULL,
+        cached_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+		// Tabla para apps de la semana
+		await db.execute(`
+      CREATE TABLE IF NOT EXISTS apps_of_the_week (
+        app_id TEXT PRIMARY KEY,
+        position INTEGER,
+        name TEXT,
+        icon TEXT,
+        data TEXT NOT NULL,
+        cached_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+		// Tabla para metadata de caché (fechas de actualización)
+		await db.execute(`
+      CREATE TABLE IF NOT EXISTS cache_metadata (
+        section_name TEXT PRIMARY KEY,
+        last_update_date TEXT NOT NULL,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
 		console.log("Setup completed successfully");
 	} catch (err) {
 		console.error("Failed to complete setup:", err);
