@@ -165,6 +165,118 @@ fn get_app_data_path(app: tauri::AppHandle, subpath: String) -> Result<String, S
     Ok(full_path.to_string_lossy().to_string())
 }
 
+#[tauri::command]
+fn get_cache_image_dir(app: tauri::AppHandle) -> Result<String, String> {
+    let app_data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
+
+    let cache_images_dir = app_data_dir.join("cacheImages");
+    Ok(cache_images_dir.to_string_lossy().to_string())
+}
+
+#[tauri::command]
+fn read_cache_index(app: tauri::AppHandle) -> Result<String, String> {
+    let app_data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
+
+    let index_path = app_data_dir.join("cacheImages").join("index.json");
+
+    if !index_path.exists() {
+        return Ok("{}".to_string());
+    }
+
+    fs::read_to_string(&index_path)
+        .map_err(|e| format!("Failed to read cache index: {}", e))
+}
+
+#[tauri::command]
+fn write_cache_index(app: tauri::AppHandle, content: String) -> Result<(), String> {
+    let app_data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
+
+    let cache_images_dir = app_data_dir.join("cacheImages");
+    fs::create_dir_all(&cache_images_dir)
+        .map_err(|e| format!("Failed to create cacheImages directory: {}", e))?;
+
+    let index_path = cache_images_dir.join("index.json");
+    fs::write(&index_path, content)
+        .map_err(|e| format!("Failed to write cache index: {}", e))
+}
+
+#[tauri::command]
+async fn download_and_cache_image(
+    app: tauri::AppHandle,
+    app_id: String,
+    image_url: String,
+) -> Result<String, String> {
+    let app_data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
+
+    let cache_images_dir = app_data_dir.join("cacheImages");
+    fs::create_dir_all(&cache_images_dir)
+        .map_err(|e| format!("Failed to create cacheImages directory: {}", e))?;
+
+    // Descargar la imagen
+    let client = reqwest::Client::new();
+    let response = client
+        .get(&image_url)
+        .send()
+        .await
+        .map_err(|e| format!("Error downloading image: {}", e))?;
+
+    if !response.status().is_success() {
+        return Err(format!("HTTP Error: {}", response.status()));
+    }
+
+    let content_type = response
+        .headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("image/png");
+
+    // Determinar extensión del archivo
+    let extension = match content_type {
+        ct if ct.contains("png") => "png",
+        ct if ct.contains("jpeg") || ct.contains("jpg") => "jpg",
+        ct if ct.contains("svg") => "svg",
+        ct if ct.contains("webp") => "webp",
+        _ => "png",
+    };
+
+    let bytes = response
+        .bytes()
+        .await
+        .map_err(|e| format!("Error reading image bytes: {}", e))?;
+
+    // Generar nombre de archivo único usando el app_id
+    let filename = format!("{}.{}", app_id.replace(".", "_"), extension);
+    let file_path = cache_images_dir.join(&filename);
+
+    fs::write(&file_path, &bytes)
+        .map_err(|e| format!("Error saving image: {}", e))?;
+
+    Ok(filename)
+}
+
+#[tauri::command]
+fn get_cached_image_path(app: tauri::AppHandle, filename: String) -> Result<String, String> {
+    let app_data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
+
+    let file_path = app_data_dir.join("cacheImages").join(filename);
+    Ok(file_path.to_string_lossy().to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -180,7 +292,12 @@ pub fn run() {
             download_flatpakref,
             check_first_launch,
             initialize_app,
-            get_app_data_path
+            get_app_data_path,
+            get_cache_image_dir,
+            read_cache_index,
+            write_cache_index,
+            download_and_cache_image,
+            get_cached_image_path
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

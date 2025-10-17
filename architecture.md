@@ -17,24 +17,44 @@ KliaStore is a desktop application built with Tauri 2, React, and TanStack Query
 ### Key Tauri Plugins
 - `@tauri-apps/plugin-http`: HTTP client for API requests (with `unsafe-headers` feature enabled)
 - `@tauri-apps/plugin-opener`: Opening links/files
+- `@tauri-apps/plugin-shell`: Execute shell commands (used for Flatpak installation)
+- `@tauri-apps/plugin-dialog`: Native dialogs
+- `@tauri-apps/plugin-fs`: File system operations
+- `@tauri-apps/plugin-sql`: SQLite database
 
 ## Project Structure
 
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── FeaturedSection.tsx
-│   ├── AppsOfTheDaySection.tsx
-│   └── CategoriesSection.tsx
+│   ├── CachedImage.tsx # Smart image component with caching
+│   └── Terminal.tsx
 ├── hooks/              # Custom React hooks
-│   └── useCategories.ts
+│   ├── useCategories.ts
+│   ├── useAppOfTheDay.ts
+│   ├── useAppsOfTheWeek.ts
+│   ├── useAppInitialization.ts
+│   └── useCompleteSetup.ts
 ├── pages/              # Page-level components
-│   └── Home.tsx
+│   ├── home/
+│   │   ├── Home.tsx
+│   │   └── components/
+│   │       ├── FeaturedSection.tsx
+│   │       ├── AppsOfTheDaySection.tsx
+│   │       └── CategoriesSection.tsx
+│   ├── welcome/
+│   │   └── Welcome.tsx
+│   └── appDetails/
+│       └── AppDetails.tsx
 ├── services/           # API and external service integrations
 │   └── api.ts
 ├── types/              # TypeScript type definitions
 │   └── index.ts
-├── App.tsx             # Root component
+├── utils/              # Utility functions
+│   └── imageCache.ts   # Image caching manager
+├── theme/              # MUI theme configuration
+│   └── theme.ts
+├── App.tsx             # Root component with routing
 └── main.tsx           # Application entry point with QueryClient setup
 ```
 
@@ -57,11 +77,72 @@ src/
 - Base URL: `https://flathub.org/api/v2`
 - Endpoints used:
   - `GET /collection/category`: Returns array of category strings
+  - `GET /appOfTheDay`: Returns app of the day details
+  - `GET /picks/:collection_id`: Returns apps of the week
+  - `GET /appstream/:app_id`: Returns app metadata
 
 ### HTTP Configuration
 - Tauri HTTP plugin requires URL permissions in `src-tauri/capabilities/default.json`
-- Current allowed URLs: `https://flathub.org/*`
+- Current allowed URLs: `https://flathub.org/*`, `https://dl.flathub.org/*`
 - Unsafe headers feature enabled in `src-tauri/Cargo.toml` for flexibility
+
+## Image Caching System
+
+### Overview
+Smart caching system that stores app images locally to reduce bandwidth and improve loading times.
+
+### Architecture
+- **Location**: `~/.local/share/com.gatorand.klia-store/cacheImages/`
+- **Index File**: `index.json` - Maps `appId` to cached image filename
+- **Image Files**: Named using pattern `{appId}.{extension}`
+
+### Components
+
+#### Frontend (`src/utils/imageCache.ts`)
+- `ImageCacheManager`: Singleton class managing cache operations
+- Methods:
+  - `getOrCacheImage(appId, imageUrl)`: Main method - checks cache first, downloads if needed
+  - `getCachedImagePath(appId)`: Retrieves cached image path
+  - `cacheImage(appId, imageUrl)`: Downloads and caches new image
+- Uses `convertFileSrc()` to convert file paths to Tauri-compatible URLs
+
+#### CachedImage Component (`src/components/CachedImage.tsx`)
+- React component wrapping image caching logic
+- Props: `appId`, `imageUrl`, `alt`, `style`, `className`
+- Features:
+  - Loading placeholder
+  - Automatic fallback to original URL on error
+  - Transparent caching (consumer doesn't need to know about cache)
+
+#### Rust Backend (`src-tauri/src/lib.rs`)
+Tauri commands:
+- `get_cache_image_dir()`: Returns cacheImages directory path
+- `read_cache_index()`: Reads index.json (returns `{}` if not exists)
+- `write_cache_index(content)`: Writes/updates index.json
+- `download_and_cache_image(app_id, image_url)`: Downloads image, saves to disk, returns filename
+- `get_cached_image_path(filename)`: Converts filename to full path
+
+### Cache Flow
+1. **First Load**:
+   - `CachedImage` calls `getOrCacheImage()`
+   - Check index.json for appId
+   - Not found → Download image from URL
+   - Save to disk as `{appId}.{ext}`
+   - Update index.json with mapping
+   - Return cached path
+
+2. **Subsequent Loads**:
+   - Check index.json for appId
+   - Found → Return cached path directly
+   - Skip download entirely
+
+### File Format Detection
+Automatically detects image type from HTTP `Content-Type` header:
+- `image/png` → `.png`
+- `image/jpeg` → `.jpg`
+- `image/svg+xml` → `.svg`
+- `image/webp` → `.webp`
+- Default → `.png`
 
 ## Key Implementation Details
 
@@ -85,10 +166,31 @@ src/
 - All cards use `height: "100%"` to fill grid cell
 - Flexbox layout ensures consistent sizing across grid items
 
-## Home Page Sections
+## Application Flow
 
-1. **Featured Section**: Carousel placeholder for featured apps
-2. **Apps of the Day**: Placeholder for daily app highlights
+### First Launch
+1. App checks if `appConf.json` exists via `check_first_launch()`
+2. If first launch → Shows Welcome page
+3. User completes setup → `initialize_app()` creates:
+   - `appConf.json` config file
+   - `cacheImages/` directory
+4. Navigate to Home page
+
+### Home Page Sections
+
+1. **Featured Section** (App of the Day):
+   - Fetches from `/appOfTheDay` endpoint
+   - Large card with app icon (cached), name, and summary
+   - Uses `CachedImage` component
+   - Click navigates to app details
+
+2. **Apps of the Week**:
+   - Fetches from `/picks/apps-of-the-week`
+   - Grid of 5 app cards
+   - Each card shows icon (cached), name, position
+   - Uses `CachedImage` component
+   - Click navigates to app details
+
 3. **Categories Section**:
    - Displays categories from Flathub API
    - Shows skeleton loaders while fetching
@@ -132,12 +234,34 @@ src/
 **Cause**: Using deprecated Grid v1 API
 **Solution**: Use Grid2 component with `size` prop
 
+## Rust Backend Commands
+
+All Tauri commands in `src-tauri/src/lib.rs`:
+
+### App Management
+- `check_first_launch()`: Returns boolean if app is first launch
+- `initialize_app()`: Creates app directories and config file
+- `get_app_data_path(subpath)`: Returns path to app data subdirectory
+
+### Flatpak Installation
+- `download_flatpakref(app_id)`: Downloads .flatpakref file
+- `install_flatpak(app_id)`: Installs Flatpak app with real-time output events
+  - Emits: `install-output`, `install-error`, `install-completed`
+
+### Image Caching
+- `get_cache_image_dir()`: Returns cacheImages directory path
+- `read_cache_index()`: Reads index.json cache index
+- `write_cache_index(content)`: Writes cache index
+- `download_and_cache_image(app_id, image_url)`: Downloads and caches image
+- `get_cached_image_path(filename)`: Converts filename to full path
+
 ## Future Considerations
 
-- Add routing (React Router)
-- Implement featured carousel with actual data
-- Add app details pages
 - Implement search functionality
 - Add state management if needed (Zustand/Redux)
 - Add error boundaries
-- Implement app installation flow
+- Category filtering and browsing
+- App update management
+- Uninstall functionality
+- Cache cleanup/management UI
+- Offline mode support

@@ -9,6 +9,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { useAppsOfTheWeek } from "../../../hooks/useAppsOfTheWeek";
 import type { AppStream } from "../../../types";
+import { CachedImage } from "../../../components/CachedImage";
 
 interface AppsOfTheDaySectionProps {
 	onAppSelect: (app: AppStream) => void;
@@ -89,8 +90,9 @@ export const AppsOfTheDaySection = ({
 										}}
 									>
 										{app.icon ? (
-											<img
-												src={app.icon}
+											<CachedImage
+												appId={app.app_id}
+												imageUrl={app.icon}
 												alt={app.name || app.app_id}
 												style={{
 													width: "100%",

@@ -1,6 +1,7 @@
 import { Box, Card, CardContent, CardMedia, Skeleton, Typography } from "@mui/material";
 import { useAppOfTheDay } from "../../../hooks/useAppOfTheDay";
 import type { AppStream } from "../../../types";
+import { CachedImage } from "../../../components/CachedImage";
 
 interface FeaturedSectionProps {
 	onAppSelect: (app: AppStream) => void;
@@ -88,17 +89,27 @@ export const FeaturedSection = ({ onAppSelect }: FeaturedSectionProps) => {
 					"&:hover": { boxShadow: 3 },
 				}}
 			>
-				{appOfTheDay?.icon && (
-					<CardMedia
-						component="img"
+				{appOfTheDay?.icon && appOfTheDay.app_id && (
+					<Box
 						sx={{
 							width: 200,
-							objectFit: "contain",
+							display: "flex",
+							alignItems: "center",
+							justifyContent: "center",
 							p: 2,
 						}}
-						image={appOfTheDay.icon}
-						alt={appOfTheDay.name}
-					/>
+					>
+						<CachedImage
+							appId={appOfTheDay.app_id}
+							imageUrl={appOfTheDay.icon}
+							alt={appOfTheDay.name}
+							style={{
+								width: "100%",
+								height: "100%",
+								objectFit: "contain",
+							}}
+						/>
+					</Box>
 				)}
 				<CardContent
 					sx={{
