@@ -275,7 +275,18 @@ fn get_cached_image_path(app: tauri::AppHandle, filename: String) -> Result<Stri
         .map_err(|e| format!("Failed to get app data directory: {}", e))?;
 
     let file_path = app_data_dir.join("cacheImages").join(filename);
-    Ok(file_path.to_string_lossy().to_string())
+
+    // Usar canonicalize para obtener la ruta absoluta normalizada
+    let canonical_path = file_path
+        .canonicalize()
+        .unwrap_or_else(|_| file_path.clone());
+
+    Ok(canonical_path.to_string_lossy().to_string())
+}
+
+#[tauri::command]
+fn check_file_exists(path: String) -> bool {
+    std::path::Path::new(&path).exists()
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -298,7 +309,8 @@ pub fn run() {
             read_cache_index,
             write_cache_index,
             download_and_cache_image,
-            get_cached_image_path
+            get_cached_image_path,
+            check_file_exists
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

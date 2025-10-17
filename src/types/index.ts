@@ -115,3 +115,27 @@ export interface CategoryApp {
 export interface CategoryAppsResponse {
 	hits: CategoryApp[];
 }
+
+export interface SearchFilter {
+	filterType: string;
+	value: string;
+}
+
+export interface SearchRequest {
+	query: string;
+	filters?: SearchFilter[];
+	hits_per_page?: number;
+	page?: number;
+}
+
+export interface SearchResponse {
+	hits: CategoryApp[];
+	query: string;
+	processingTimeMs: number;
+	hitsPerPage: number;
+	page: number;
+	totalPages: number;
+	totalHits: number;
+	facetDistribution?: Record<string, Record<string, number>>;
+	facetStats?: Record<string, Record<string, number>>;
+}

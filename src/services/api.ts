@@ -6,6 +6,8 @@ import type {
 	AppsOfTheWeekResponse,
 	Category,
 	CategoryAppsResponse,
+	SearchRequest,
+	SearchResponse,
 } from "../types";
 
 const API_BASE_URL = "https://flathub.org/api/v2";
@@ -130,5 +132,29 @@ export const apiService = {
 
 		const data = await response.json();
 		return data as CategoryAppsResponse;
+	},
+
+	async searchApps(
+		searchRequest: SearchRequest,
+		locale: string = "en",
+	): Promise<SearchResponse> {
+		const response = await tauriFetch(
+			`${API_BASE_URL}/search?locale=${locale}`,
+			{
+				method: "POST",
+				headers: {
+					accept: "application/json",
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(searchRequest),
+			},
+		);
+
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+
+		const data = await response.json();
+		return data as SearchResponse;
 	},
 };

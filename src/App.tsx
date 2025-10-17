@@ -63,7 +63,6 @@ function App() {
 				app={selectedApp}
 				onBack={() => {
 					setSelectedApp(null);
-					setSelectedCategory(null);
 				}}
 			/>
 		);
