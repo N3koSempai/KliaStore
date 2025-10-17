@@ -35,7 +35,8 @@ const slides: WelcomeSlide[] = [
 	{
 		id: 5,
 		title: "Ready to Start",
-		description: "Let's explore the world of open source applications together!",
+		description:
+			"Let's explore the world of open source applications together!",
 	},
 ];
 
@@ -48,14 +49,11 @@ export function Welcome({ onComplete }: WelcomeProps) {
 	const [isCompleting, setIsCompleting] = useState(false);
 
 	useEffect(() => {
-		const timer = setTimeout(
-			() => {
-				if (currentSlide < slides.length - 1) {
-					setCurrentSlide(currentSlide + 1);
-				}
-			},
-			5000,
-		); // 5 seconds per slide
+		const timer = setTimeout(() => {
+			if (currentSlide < slides.length - 1) {
+				setCurrentSlide(currentSlide + 1);
+			}
+		}, 5000); // 5 seconds per slide
 
 		return () => clearTimeout(timer);
 	}, [currentSlide]);
@@ -89,7 +87,8 @@ export function Welcome({ onComplete }: WelcomeProps) {
 		if (slideId === 2) {
 			return (
 				<p className="slide-description">
-					{description} <span className="highlight-localfirst">#localfirst</span>
+					{description}{" "}
+					<span className="highlight-localfirst">#localfirst</span>
 				</p>
 			);
 		}

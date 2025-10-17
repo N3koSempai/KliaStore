@@ -1,7 +1,14 @@
-import { Box, Card, CardContent, CardMedia, Skeleton, Typography } from "@mui/material";
+import {
+	Box,
+	Card,
+	CardContent,
+	CardMedia,
+	Skeleton,
+	Typography,
+} from "@mui/material";
+import { CachedImage } from "../../../components/CachedImage";
 import { useAppOfTheDay } from "../../../hooks/useAppOfTheDay";
 import type { AppStream } from "../../../types";
-import { CachedImage } from "../../../components/CachedImage";
 
 interface FeaturedSectionProps {
 	onAppSelect: (app: AppStream) => void;
@@ -78,7 +85,9 @@ export const FeaturedSection = ({ onAppSelect }: FeaturedSectionProps) => {
 				Destacados
 			</Typography>
 			<Card
-				onClick={() => appOfTheDay?.appStream && onAppSelect(appOfTheDay.appStream)}
+				onClick={() =>
+					appOfTheDay?.appStream && onAppSelect(appOfTheDay.appStream)
+				}
 				sx={{
 					height: 300,
 					borderRadius: 2,

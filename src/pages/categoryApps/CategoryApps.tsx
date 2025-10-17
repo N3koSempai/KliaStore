@@ -38,7 +38,9 @@ export const CategoryApps = ({
 	};
 
 	return (
-		<Box sx={{ p: 3, maxWidth: "100%", overflow: "hidden", minHeight: "100vh" }}>
+		<Box
+			sx={{ p: 3, maxWidth: "100%", overflow: "hidden", minHeight: "100vh" }}
+		>
 			{/* Header with back button */}
 			<Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
 				<IconButton onClick={onBack}>

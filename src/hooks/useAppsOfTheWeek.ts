@@ -8,9 +8,8 @@ export const useAppsOfTheWeek = () => {
 		queryKey: ["appsOfTheWeek"],
 		queryFn: async () => {
 			// Verificar si necesitamos actualizar el caché
-			const shouldUpdate = await dbCacheManager.shouldUpdateSection(
-				"appsOfTheWeek",
-			);
+			const shouldUpdate =
+				await dbCacheManager.shouldUpdateSection("appsOfTheWeek");
 
 			// Si no necesitamos actualizar, devolver datos cacheados
 			if (!shouldUpdate) {

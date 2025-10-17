@@ -346,10 +346,12 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 									{(() => {
 										const screenshot = screenshots[currentImageIndex];
 										// Buscar el tamaño más grande o el primero disponible
-										const largestSize = screenshot.sizes.reduce((prev, current) =>
-											Number.parseInt(prev.width) > Number.parseInt(current.width)
-												? prev
-												: current,
+										const largestSize = screenshot.sizes.reduce(
+											(prev, current) =>
+												Number.parseInt(prev.width) >
+												Number.parseInt(current.width)
+													? prev
+													: current,
 										);
 										return (
 											<CachedImage

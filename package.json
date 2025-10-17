@@ -25,6 +25,7 @@
 		"@tauri-apps/plugin-sql": "~2.3.0",
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0",
+		"use-debounce": "^10.0.6",
 		"uuid": "^13.0.0"
 	},
 	"devDependencies": {

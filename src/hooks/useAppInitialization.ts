@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { useEffect, useState } from "react";
 
 export function useAppInitialization() {
 	const [isFirstLaunch, setIsFirstLaunch] = useState<boolean | null>(null);

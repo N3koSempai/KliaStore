@@ -1,9 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import Database from "@tauri-apps/plugin-sql";
-import type {
-	AppOfTheDayWithDetails,
-	AppOfTheWeekWithDetails,
-} from "../types";
+import type { AppOfTheDayWithDetails, AppOfTheWeekWithDetails } from "../types";
 
 export class DBCacheManager {
 	private static instance: DBCacheManager;
@@ -43,9 +40,7 @@ export class DBCacheManager {
 
 		const currentDate = this.getCurrentDate();
 
-		const result = await this.db.select<
-			Array<{ last_update_date: string }>
-		>(
+		const result = await this.db.select<Array<{ last_update_date: string }>>(
 			"SELECT last_update_date FROM cache_metadata WHERE section_name = $1",
 			[sectionName],
 		);
@@ -167,13 +162,7 @@ export class DBCacheManager {
 			await this.db.execute(
 				`INSERT INTO apps_of_the_week (app_id, position, name, icon, data)
          VALUES ($1, $2, $3, $4, $5)`,
-				[
-					app.app_id,
-					app.position,
-					app.name || null,
-					app.icon || null,
-					dataStr,
-				],
+				[app.app_id, app.position, app.name || null, app.icon || null, dataStr],
 			);
 		}
 

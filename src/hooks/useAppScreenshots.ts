@@ -9,9 +9,7 @@ interface UseAppScreenshotsReturn {
 	error: Error | null;
 }
 
-export const useAppScreenshots = (
-	app: AppStream,
-): UseAppScreenshotsReturn => {
+export const useAppScreenshots = (app: AppStream): UseAppScreenshotsReturn => {
 	const [screenshots, setScreenshots] = useState<AppStream["screenshots"]>(
 		app.screenshots,
 	);

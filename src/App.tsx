@@ -1,9 +1,9 @@
 import { useState } from "react";
+import { useAppInitialization } from "./hooks/useAppInitialization";
 import { AppDetails } from "./pages/appDetails/AppDetails";
 import { CategoryApps } from "./pages/categoryApps/CategoryApps";
 import { Home } from "./pages/home/Home";
 import { Welcome } from "./pages/welcome/Welcome";
-import { useAppInitialization } from "./hooks/useAppInitialization";
 import type { AppStream } from "./types";
 import "./App.css";
 
@@ -80,10 +80,7 @@ function App() {
 	}
 
 	return (
-		<Home
-			onAppSelect={setSelectedApp}
-			onCategorySelect={setSelectedCategory}
-		/>
+		<Home onAppSelect={setSelectedApp} onCategorySelect={setSelectedCategory} />
 	);
 }
 

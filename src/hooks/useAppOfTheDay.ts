@@ -8,9 +8,8 @@ export const useAppOfTheDay = () => {
 		queryKey: ["appOfTheDay"],
 		queryFn: async () => {
 			// Verificar si necesitamos actualizar el caché
-			const shouldUpdate = await dbCacheManager.shouldUpdateSection(
-				"appOfTheDay",
-			);
+			const shouldUpdate =
+				await dbCacheManager.shouldUpdateSection("appOfTheDay");
 
 			// Si no necesitamos actualizar, devolver datos cacheados
 			if (!shouldUpdate) {
@@ -39,7 +38,10 @@ export const useAppOfTheDay = () => {
 
 				return appData;
 			} catch (error) {
-				console.error(`Error fetching appstream for ${response.app_id}:`, error);
+				console.error(
+					`Error fetching appstream for ${response.app_id}:`,
+					error,
+				);
 				const fallbackData = {
 					...response,
 					name: response.app_id,

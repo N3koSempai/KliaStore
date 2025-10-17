@@ -1,30 +1,28 @@
 {
-  "$schema": "../gen/schemas/desktop-schema.json",
-  "identifier": "default",
-  "description": "Capability for the main window",
-  "windows": [
-    "main"
-  ],
-  "permissions": [
-    "core:default",
-    "core:path:default",
-    "opener:default",
-    "shell:allow-execute",
-    "dialog:allow-save",
-    "fs:allow-write-text-file",
-    "fs:allow-read-file",
-    "fs:scope-appdata",
-    "fs:scope-appdata-recursive",
-    {
-      "identifier": "http:default",
-      "allow": [
-        {
-          "url": "https://flathub.org/*"
-        }
-      ]
-    },
-    "sql:default",
-    "sql:allow-load",
-    "sql:allow-execute"
-  ]
+	"$schema": "../gen/schemas/desktop-schema.json",
+	"identifier": "default",
+	"description": "Capability for the main window",
+	"windows": ["main"],
+	"permissions": [
+		"core:default",
+		"core:path:default",
+		"opener:default",
+		"shell:allow-execute",
+		"dialog:allow-save",
+		"fs:allow-write-text-file",
+		"fs:allow-read-file",
+		"fs:scope-appdata",
+		"fs:scope-appdata-recursive",
+		{
+			"identifier": "http:default",
+			"allow": [
+				{
+					"url": "https://flathub.org/*"
+				}
+			]
+		},
+		"sql:default",
+		"sql:allow-load",
+		"sql:allow-execute"
+	]
 }
