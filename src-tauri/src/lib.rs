@@ -67,11 +67,24 @@ async fn install_flatpak(app: tauri::AppHandle, app_id: String) -> Result<(), St
 
     let shell = app.shell();
 
-    let (mut rx, _child) = shell
-        .command("flatpak")
-        .args(["install", "-y", "--user", &flatpakref_path])
-        .spawn()
-        .map_err(|e| format!("Failed to spawn flatpak: {}", e))?;
+    // Detectar si estamos en un flatpak
+    let is_flatpak = std::env::var("FLATPAK_ID").is_ok();
+
+    let (mut rx, _child) = if is_flatpak {
+        // Dentro de flatpak, usar flatpak-spawn para ejecutar en el host
+        shell
+            .command("flatpak-spawn")
+            .args(["--host", "flatpak", "install", "-y", "--user", &flatpakref_path])
+            .spawn()
+            .map_err(|e| format!("Failed to spawn flatpak-spawn: {}", e))?
+    } else {
+        // Fuera de flatpak, usar flatpak directamente
+        shell
+            .command("flatpak")
+            .args(["install", "-y", "--user", &flatpakref_path])
+            .spawn()
+            .map_err(|e| format!("Failed to spawn flatpak: {}", e))?
+    };
 
     // Leer la salida en tiempo real
     while let Some(event) = rx.recv().await {
