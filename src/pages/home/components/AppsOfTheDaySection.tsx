@@ -2,7 +2,6 @@ import {
 	Box,
 	Card,
 	CardContent,
-	Grid,
 	Skeleton,
 	Typography,
 } from "@mui/material";
@@ -32,10 +31,10 @@ export const AppsOfTheDaySection = ({
 				</Typography>
 			)}
 
-			<Grid container spacing={2}>
+			<Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
 				{isLoading || !data
 					? Array.from(new Array(6)).map((_) => (
-							<Grid item xs={12} sm={6} md={4} lg={2} key={uuidv4()}>
+							<Box key={uuidv4()} sx={{ flex: "0 0 auto" }}>
 								<Card
 									sx={{
 										height: 240,
@@ -62,11 +61,11 @@ export const AppsOfTheDaySection = ({
 										<Skeleton variant="text" width="40%" />
 									</CardContent>
 								</Card>
-							</Grid>
+							</Box>
 						))
 					: [
 							...data.map((app) => (
-								<Grid item xs={12} sm={6} md={4} lg={2.4} key={app.app_id}>
+								<Box key={app.app_id} sx={{ flex: "0 0 auto" }}>
 									<Card
 										onClick={() => app.appStream && onAppSelect(app.appStream)}
 										sx={{
@@ -127,10 +126,10 @@ export const AppsOfTheDaySection = ({
 											</Typography>
 										</CardContent>
 									</Card>
-								</Grid>
+								</Box>
 							)),
 							// Promoted card
-							<Grid item xs={12} sm={6} md={4} lg={2} key="promoted">
+							<Box key="promoted" sx={{ flex: "0 0 auto" }}>
 								<Card
 									sx={{
 										cursor: "pointer",
@@ -180,9 +179,9 @@ export const AppsOfTheDaySection = ({
 										</Typography>
 									</CardContent>
 								</Card>
-							</Grid>,
+							</Box>,
 						]}
-			</Grid>
+			</Box>
 		</Box>
 	);
 };

@@ -337,6 +337,149 @@ All Tauri commands in `src-tauri/src/lib.rs`:
 - `download_and_cache_image(app_id, image_url)`: Downloads and caches image
 - `get_cached_image_path(filename)`: Converts filename to full path
 
+## Build and Distribution
+
+### Building Flatpak
+
+KliaStore can be distributed as a Flatpak package. The build process is complex and requires several dependencies.
+
+#### Prerequisites
+
+```bash
+# Install Flatpak build tools
+sudo apt install flatpak flatpak-builder
+
+# Install runtime and SDK
+flatpak install --user flathub org.gnome.Platform//48
+flatpak install --user flathub org.gnome.Sdk//48
+
+# Install SDK extensions for Rust and Node
+flatpak install --user flathub org.freedesktop.Sdk.Extension.rust-stable//23.08
+flatpak install --user flathub org.freedesktop.Sdk.Extension.node20//23.08
+```
+
+#### Build Process
+
+The Flatpak build is configured in `com.gatorand.klia-store.yml` manifest file.
+
+**Build command:**
+```bash
+flatpak-builder --user --install --force-clean build-dir com.gatorand.klia-store.yml
+```
+
+**Run the Flatpak:**
+```bash
+flatpak run com.gatorand.klia-store
+```
+
+**Create distributable bundle:**
+```bash
+flatpak build-bundle ~/.local/share/flatpak/repo klia-store.flatpak com.gatorand.klia-store
+```
+
+#### Build Configuration
+
+The manifest uses:
+- **Runtime**: GNOME Platform 48
+- **SDK**: GNOME SDK 48
+- **Node**: Node 20.x via SDK extension
+- **Rust**: Rust stable via SDK extension
+- **Package Manager**: pnpm 10.13.1
+
+#### Key Build Steps
+
+1. **Install pnpm**: Installed globally in a writable location (`/run/build/klia-store/npm-global`)
+2. **Install dependencies**: `pnpm install --frozen-lockfile --force`
+3. **Build application**: `pnpm tauri build --bundles deb`
+   - Creates the binary executable
+   - Generates a .deb package
+4. **Install files**: Binary, desktop file, icon, and metainfo to `/app/`
+
+#### Important Environment Variables
+
+```yaml
+CI: 'true'                      # Prevents interactive prompts
+TAURI_PLATFORM_TYPE: 'Linux'
+TAURI_ENV_PRODUCTION: 'true'
+npm_config_prefix: /run/build/klia-store/npm-global  # Writable npm prefix
+```
+
+### Building .deb Package
+
+The Tauri build process automatically creates a .deb package alongside the Flatpak build.
+
+**Location after build:**
+```
+src-tauri/target/release/bundle/deb/klia-store_0.1.0_amd64.deb
+```
+
+**Install the .deb:**
+```bash
+sudo dpkg -i src-tauri/target/release/bundle/deb/klia-store_0.1.0_amd64.deb
+```
+
+### Troubleshooting
+
+#### Problem: "cfg(dev) enabled in production build"
+**Symptoms**: Application shows "Could not connect to localhost" with blank screen.
+
+**Cause**: Building with `cargo build` directly instead of using Tauri CLI sets development flags.
+
+**Solution**: Always use `pnpm tauri build` which correctly sets production configuration flags.
+
+#### Problem: "pnpm: command not found" during Flatpak build
+**Cause**: PATH not configured correctly or pnpm installed in read-only location.
+
+**Solutions**:
+1. Set `npm_config_prefix` environment variable to writable location
+2. Add custom install directory to `append-path` in build-options
+3. Use `npm install -g pnpm@10.13.1` with custom prefix
+
+#### Problem: "The modules directory will be removed and reinstalled" prompt hangs build
+**Cause**: pnpm prompting for user input in CI environment.
+
+**Solution**: Set `CI: 'true'` environment variable and use `pnpm install --force` flag to skip prompts.
+
+#### Problem: Flatpak build fails on AppImage/RPM bundler
+**Cause**: Default Tauri builds include appimage and rpm bundles that require additional dependencies.
+
+**Solution**: Use `--bundles deb` flag to only create the binary and deb package:
+```bash
+pnpm tauri build --bundles deb
+```
+
+#### Problem: MUI Grid2 type errors during build
+**Cause**: Material UI v7 changed Grid API but types may not be compatible.
+
+**Solution**: Use Box with flexbox instead:
+```tsx
+// Instead of Grid
+<Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+  <Box sx={{ flex: "0 0 auto" }}>
+    {/* content */}
+  </Box>
+</Box>
+```
+
+#### Problem: "ENOENT: no such file or directory, mkdir '/usr/lib/sdk/node20/lib/node_modules'"
+**Cause**: npm trying to install to read-only SDK directory.
+
+**Solution**: Configure `npm_config_prefix` to point to writable build directory.
+
+#### Problem: Extensions not found (rust-stable//23.08/x86_64/48)
+**Cause**: Trying to use Freedesktop SDK 24.08 extensions with GNOME 48 runtime (which is based on Freedesktop SDK 23.08).
+
+**Solution**: Match SDK extension versions to runtime base:
+- GNOME 48 → Use Freedesktop SDK 23.08 extensions
+- GNOME 49 → Use Freedesktop SDK 24.08 extensions
+
+#### Build Performance Tips
+
+1. **Use `--share=network`**: Allows downloading dependencies during build
+2. **Cache npm packages**: `npm_config_cache` environment variable
+3. **Cargo cache**: Set `CARGO_HOME` to persist Rust dependencies
+4. **Clean builds**: Use `--force-clean` to ensure reproducible builds
+
 ## Future Considerations
 
 - Implement search functionality
@@ -347,3 +490,4 @@ All Tauri commands in `src-tauri/src/lib.rs`:
 - Uninstall functionality
 - Cache cleanup/management UI
 - Offline mode support
+- Submit to Flathub repository

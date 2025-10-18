@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.gatorand.klia-store</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <name>Klia Store</name>
+  <summary>Flatpak application store</summary>
+  <description>
+    <p>A modern application store for managing Flatpak applications.</p>
+  </description>
+  <launchable type="desktop-id">com.gatorand.klia-store.desktop</launchable>
+  <provides>
+    <binary>klia-store</binary>
+  </provides>
+  <releases>
+    <release version="0.1.0" date="2025-10-18"/>
+  </releases>
+  <content_rating type="oars-1.1"/>
+</component>

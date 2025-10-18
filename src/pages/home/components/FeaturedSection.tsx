@@ -2,7 +2,6 @@ import {
 	Box,
 	Card,
 	CardContent,
-	CardMedia,
 	Skeleton,
 	Typography,
 } from "@mui/material";
@@ -111,7 +110,7 @@ export const FeaturedSection = ({ onAppSelect }: FeaturedSectionProps) => {
 						<CachedImage
 							appId={appOfTheDay.app_id}
 							imageUrl={appOfTheDay.icon}
-							alt={appOfTheDay.name}
+							alt={appOfTheDay.name || appOfTheDay.app_id}
 							style={{
 								width: "100%",
 								height: "100%",

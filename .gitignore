@@ -22,3 +22,15 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Flatpak build artifacts
+.flatpak-builder/
+build-dir/
+*.flatpak
+*.flatpakref
+
+# Tauri build artifacts
+src-tauri/target/
+
+# Build logs
+build.log
