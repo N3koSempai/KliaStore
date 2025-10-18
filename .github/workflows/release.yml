@@ -1,0 +1,167 @@
+name: Release Build
+
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+  workflow_dispatch:
+
+jobs:
+  check-release:
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.check.outputs.should_release }}
+      version: ${{ steps.check.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check for [release] in commit message
+        id: check
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          if echo "$COMMIT_MSG" | grep -q "\[release\]"; then
+            echo "should_release=true" >> $GITHUB_OUTPUT
+            # Extract version from package.json
+            VERSION=$(grep -oP '"version":\s*"\K[^"]+' package.json)
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "Release triggered with version $VERSION"
+          else
+            echo "should_release=false" >> $GITHUB_OUTPUT
+            echo "No [release] tag found in commit message"
+          fi
+
+  build-deb:
+    needs: check-release
+    if: needs.check-release.outputs.should_release == 'true'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.13.1
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            build-essential \
+            curl \
+            wget \
+            file \
+            libxdo-dev \
+            libssl-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Tauri .deb
+        run: pnpm tauri build --bundles deb
+
+      - name: Rename .deb file
+        run: |
+          VERSION="${{ needs.check-release.outputs.version }}"
+          DEB_FILE=$(find src-tauri/target/release/bundle/deb -name "*.deb" -type f)
+          mv "$DEB_FILE" "Klia-Store-beta${VERSION}.deb"
+
+      - name: Upload .deb artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deb-package
+          path: Klia-Store-beta*.deb
+
+  build-flatpak:
+    needs: check-release
+    if: needs.check-release.outputs.should_release == 'true'
+    runs-on: ubuntu-22.04
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:gnome-48
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flatpak
+        run: |
+          flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak install -y flathub org.gnome.Platform//48 org.gnome.Sdk//48
+          flatpak install -y flathub org.freedesktop.Sdk.Extension.rust-stable//23.08
+          flatpak install -y flathub org.freedesktop.Sdk.Extension.node20//23.08
+
+      - name: Build Flatpak
+        run: |
+          flatpak-builder --repo=repo --force-clean --install-deps-from=flathub build-dir com.gatorand.klia-store.yml
+
+      - name: Create Flatpak bundle
+        run: |
+          VERSION="${{ needs.check-release.outputs.version }}"
+          flatpak build-bundle repo "Klia-Store-beta${VERSION}.flatpak" com.gatorand.klia-store
+
+      - name: Upload Flatpak artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: flatpak-package
+          path: Klia-Store-beta*.flatpak
+
+  create-release:
+    needs: [check-release, build-deb, build-flatpak]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download .deb artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deb-package
+
+      - name: Download Flatpak artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: flatpak-package
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.check-release.outputs.version }}
+          name: Klia Store Beta ${{ needs.check-release.outputs.version }}
+          draft: false
+          prerelease: true
+          body: |
+            ## Klia Store Beta ${{ needs.check-release.outputs.version }}
+
+            ### Installation
+
+            **Debian/Ubuntu (.deb):**
+            ```bash
+            sudo dpkg -i Klia-Store-beta${{ needs.check-release.outputs.version }}.deb
+            ```
+
+            **Flatpak:**
+            ```bash
+            flatpak install Klia-Store-beta${{ needs.check-release.outputs.version }}.flatpak
+            flatpak run com.gatorand.klia-store
+            ```
+
+            ### Changes
+            ${{ github.event.head_commit.message }}
+          files: |
+            Klia-Store-beta*.deb
+            Klia-Store-beta*.flatpak

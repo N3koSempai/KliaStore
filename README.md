@@ -55,6 +55,9 @@ For detailed instructions on building Flatpak packages and troubleshooting commo
 ```bash
 flatpak-builder --user --install --force-clean build-dir com.gatorand.klia-store.yml
 flatpak run com.gatorand.klia-store
+
+# Create distributable bundle
+flatpak build-bundle ~/.local/share/flatpak/repo klia-store.flatpak com.gatorand.klia-store
 ```
 
 **Debian Package:**
@@ -62,6 +65,21 @@ flatpak run com.gatorand.klia-store
 pnpm tauri build --bundles deb
 sudo dpkg -i src-tauri/target/release/bundle/deb/klia-store_*.deb
 ```
+
+### Automated Releases
+
+To create an automated release with both .deb and .flatpak packages:
+
+1. Update the version in `package.json`
+2. Commit with `[release]` in the message:
+   ```bash
+   git commit -m "[release] Version 1.0 - Added new features"
+   git push
+   ```
+3. GitHub Actions will automatically:
+   - Build .deb and .flatpak packages
+   - Create a new release with tag `v{version}`
+   - Upload both packages as `Klia-Store-beta{version}.deb` and `Klia-Store-beta{version}.flatpak`
 
 ## Documentation
 
