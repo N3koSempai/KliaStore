@@ -38,9 +38,18 @@ async fn download_flatpakref(app: tauri::AppHandle, app_id: String) -> Result<St
         .await
         .map_err(|e| format!("Error leyendo contenido: {}", e))?;
 
-    // Guardar en directorio temporal
-    let cache_dir = std::env::temp_dir();
-    let flatpakref_path = cache_dir.join(format!("{}.flatpakref", app_id));
+    // Obtener el directorio de datos de la app
+    let app_data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
+
+    // Crear carpeta temp dentro del directorio de la app
+    let temp_dir = app_data_dir.join("temp");
+    fs::create_dir_all(&temp_dir)
+        .map_err(|e| format!("Failed to create temp directory: {}", e))?;
+
+    let flatpakref_path = temp_dir.join(format!("{}.flatpakref", app_id));
 
     fs::write(&flatpakref_path, &content).map_err(|e| format!("Error guardando archivo: {}", e))?;
 
