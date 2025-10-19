@@ -1,4 +1,5 @@
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
+import { API_BASE_URL } from "../constants/api";
 import type {
 	AppOfTheDayResponse,
 	AppStream,
@@ -9,8 +10,6 @@ import type {
 	SearchRequest,
 	SearchResponse,
 } from "../types";
-
-const API_BASE_URL = "https://flathub.org/api/v2";
 
 const getTodayDate = (): string => {
 	const today = new Date();
