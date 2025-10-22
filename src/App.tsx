@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAppInitialization } from "./hooks/useAppInitialization";
+import { useInstalledApps } from "./hooks/useInstalledApps";
 import { AppDetails } from "./pages/appDetails/AppDetails";
 import { CategoryApps } from "./pages/categoryApps/CategoryApps";
 import { Home } from "./pages/home/Home";
@@ -12,6 +13,9 @@ function App() {
 	const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 	const [showWelcome, setShowWelcome] = useState(true);
 	const { isFirstLaunch, isInitializing, error } = useAppInitialization();
+
+	// Load installed apps on startup (non-blocking)
+	useInstalledApps();
 
 	const handleWelcomeComplete = () => {
 		setShowWelcome(false);

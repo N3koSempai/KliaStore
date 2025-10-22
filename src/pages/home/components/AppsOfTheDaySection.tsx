@@ -111,18 +111,29 @@ export const AppsOfTheDaySection = ({
 												flexGrow: 1,
 												display: "flex",
 												flexDirection: "column",
-												justifyContent: "space-between",
+												gap: 0.5,
 											}}
 										>
 											<Typography
 												variant="body2"
+												fontWeight="bold"
 												noWrap
 												title={app.name || app.app_id}
 											>
 												{app.name || app.app_id}
 											</Typography>
-											<Typography variant="caption" color="text.secondary">
-												#{app.position}
+											<Typography
+												variant="caption"
+												color="text.secondary"
+												sx={{
+													display: "-webkit-box",
+													WebkitLineClamp: 2,
+													WebkitBoxOrient: "vertical",
+													overflow: "hidden",
+													textOverflow: "ellipsis",
+												}}
+											>
+												{app.summary || "No description available"}
 											</Typography>
 										</CardContent>
 									</Card>

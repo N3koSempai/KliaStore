@@ -311,6 +311,46 @@ fn check_file_exists(path: String) -> bool {
     std::path::Path::new(&path).exists()
 }
 
+#[tauri::command]
+async fn get_installed_flatpaks(app: tauri::AppHandle) -> Result<Vec<String>, String> {
+    let shell = app.shell();
+
+    // Detect if we're running inside a flatpak
+    let is_flatpak = std::env::var("FLATPAK_ID").is_ok();
+
+    let output = if is_flatpak {
+        // Inside flatpak, use flatpak-spawn to execute on the host
+        shell
+            .command("flatpak-spawn")
+            .args(["--host", "flatpak", "list", "--app", "--columns=application"])
+            .output()
+            .await
+            .map_err(|e| format!("Failed to execute flatpak-spawn: {}", e))?
+    } else {
+        // Outside flatpak, use flatpak directly
+        shell
+            .command("flatpak")
+            .args(["list", "--app", "--columns=application"])
+            .output()
+            .await
+            .map_err(|e| format!("Failed to execute flatpak: {}", e))?
+    };
+
+    if !output.status.success() {
+        let error = String::from_utf8_lossy(&output.stderr);
+        return Err(format!("Flatpak command failed: {}", error));
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let app_ids: Vec<String> = stdout
+        .lines()
+        .filter(|line| !line.trim().is_empty())
+        .map(|line| line.trim().to_string())
+        .collect();
+
+    Ok(app_ids)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -332,7 +372,8 @@ pub fn run() {
             write_cache_index,
             download_and_cache_image,
             get_cached_image_path,
-            check_file_exists
+            check_file_exists,
+            get_installed_flatpaks
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

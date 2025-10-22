@@ -32,6 +32,7 @@ export const useAppsOfTheWeek = () => {
 							...app,
 							name: appStream.name,
 							icon: appStream.icon || appStream.icons?.[0]?.url,
+							summary: appStream.summary,
 							appStream: appStream,
 						} as AppOfTheWeekWithDetails;
 					} catch (error) {

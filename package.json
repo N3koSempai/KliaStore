@@ -26,7 +26,8 @@
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0",
 		"use-debounce": "^10.0.6",
-		"uuid": "^13.0.0"
+		"uuid": "^13.0.0",
+		"zustand": "^5.0.8"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.2.6",

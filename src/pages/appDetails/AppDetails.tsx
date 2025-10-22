@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from "uuid";
 import { CachedImage } from "../../components/CachedImage";
 import { Terminal } from "../../components/Terminal";
 import { useAppScreenshots } from "../../hooks/useAppScreenshots";
+import { useInstalledAppsStore } from "../../store/installedAppsStore";
 import type { AppStream } from "../../types";
 
 interface AppDetailsProps {
@@ -20,12 +21,16 @@ interface AppDetailsProps {
 export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 	const { screenshots, isLoading: isLoadingScreenshots } =
 		useAppScreenshots(app);
+	const { isAppInstalled, setInstalledApp } = useInstalledAppsStore();
 	const [currentImageIndex, setCurrentImageIndex] = useState(0);
 	const [isInstalling, setIsInstalling] = useState(false);
 	const [installOutput, setInstallOutput] = useState<string[]>([]);
 	const [installStatus, setInstallStatus] = useState<
 		"idle" | "installing" | "success" | "error"
 	>("idle");
+
+	// Check if app is already installed
+	const isInstalled = isAppInstalled(app.id);
 
 	// Escuchar eventos de instalación
 	useEffect(() => {
@@ -46,6 +51,8 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 					"✓ Instalación completada exitosamente.",
 				]);
 				setInstallStatus("success");
+				// Mark app as installed in the store
+				setInstalledApp(app.id, true);
 			} else {
 				setInstallOutput((prev) => [
 					...prev,
@@ -61,7 +68,7 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 			unlistenError.then((fn) => fn());
 			unlistenCompleted.then((fn) => fn());
 		};
-	}, []);
+	}, [app.id, setInstalledApp]);
 
 	// Función para limpiar HTML de la descripción
 	const stripHtml = (html: string) => {
@@ -140,7 +147,7 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 	};
 
 	return (
-		<Box sx={{ p: 3 }}>
+		<Box sx={{ p: 3, minHeight: "100vh" }}>
 			{/* Botón de regreso */}
 			<IconButton onClick={onBack} sx={{ mb: 2 }}>
 				<ArrowBack />
@@ -202,13 +209,15 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 					</Box>
 				</Box>
 
-				{/* Botón Instalar */}
+				{/* Install Button */}
 				<Button
 					variant="contained"
 					size="large"
 					onClick={handleInstall}
 					disabled={
-						installStatus === "installing" || installStatus === "success"
+						isInstalled ||
+						installStatus === "installing" ||
+						installStatus === "success"
 					}
 					sx={{
 						px: 4,
@@ -216,14 +225,14 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 						fontSize: "1rem",
 						fontWeight: "bold",
 						bgcolor:
-							installStatus === "success"
+							isInstalled || installStatus === "success"
 								? "success.main"
 								: installStatus === "installing"
 									? "grey.600"
 									: "primary.main",
 						"&:hover": {
 							bgcolor:
-								installStatus === "success"
+								isInstalled || installStatus === "success"
 									? "success.dark"
 									: installStatus === "installing"
 										? "grey.600"
@@ -231,15 +240,17 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 						},
 						"&.Mui-disabled": {
 							bgcolor:
-								installStatus === "success" ? "success.main" : "grey.600",
+								isInstalled || installStatus === "success"
+									? "success.main"
+									: "grey.600",
 							color: "white",
 						},
 					}}
 				>
-					{installStatus === "installing"
-						? "Installing..."
-						: installStatus === "success"
-							? "Installed"
+					{isInstalled || installStatus === "success"
+						? "Installed"
+						: installStatus === "installing"
+							? "Installing..."
 							: "Instalar"}
 				</Button>
 			</Box>
@@ -261,6 +272,7 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 							alignItems: "center",
 							gap: 3,
 							p: 4,
+							minHeight: 500,
 						}}
 					>
 						{/* Animación */}

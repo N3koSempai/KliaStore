@@ -42,7 +42,7 @@ export interface AppSummary {
 export interface AppOfTheWeekWithDetails extends AppOfTheWeek {
 	name?: string;
 	icon?: string;
-	summary?: AppSummary;
+	summary?: string;
 	appStream?: AppStream;
 }
 
