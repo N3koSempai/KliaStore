@@ -1,5 +1,7 @@
+import AppsIcon from "@mui/icons-material/Apps";
 import {
 	Box,
+	Button,
 	Card,
 	CardContent,
 	Container,
@@ -18,9 +20,10 @@ import { FeaturedSection } from "./components/FeaturedSection";
 interface HomeProps {
 	onAppSelect: (app: AppStream) => void;
 	onCategorySelect: (categoryId: string) => void;
+	onMyAppsClick: () => void;
 }
 
-export const Home = ({ onAppSelect, onCategorySelect }: HomeProps) => {
+export const Home = ({ onAppSelect, onCategorySelect, onMyAppsClick }: HomeProps) => {
 	const [searchResults, setSearchResults] = useState<CategoryApp[]>([]);
 	const [isSearching, setIsSearching] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
@@ -46,15 +49,35 @@ export const Home = ({ onAppSelect, onCategorySelect }: HomeProps) => {
 	return (
 		<Container maxWidth="xl">
 			<Box sx={{ py: 4, minHeight: "100vh" }}>
-				{/* Search Bar - Always visible */}
+				{/* Search Bar with My Apps Button - Always visible */}
 				<Box
 					sx={{
 						display: "flex",
 						justifyContent: "center",
+						alignItems: "center",
+						gap: 2,
 						mb: 4,
 						mt: 2,
 					}}
 				>
+					<Button
+						variant="outlined"
+						startIcon={<AppsIcon />}
+						onClick={onMyAppsClick}
+						sx={{
+							borderRadius: 3,
+							px: 3,
+							py: 1.5,
+							fontWeight: "bold",
+							borderColor: "rgba(255, 255, 255, 0.1)",
+							"&:hover": {
+								borderColor: "primary.main",
+								backgroundColor: "rgba(25, 118, 210, 0.04)",
+							},
+						}}
+					>
+						My Apps
+					</Button>
 					<AppSearchBar onSearch={handleSearch} onLoading={setIsSearching} />
 				</Box>
 

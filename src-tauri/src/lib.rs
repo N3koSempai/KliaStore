@@ -1,7 +1,22 @@
 use std::fs;
+use serde::Serialize;
 use tauri::{Emitter, Manager};
 use tauri_plugin_http::reqwest;
 use tauri_plugin_shell::ShellExt;
+
+#[derive(Serialize)]
+struct InstalledApp {
+    app_id: String,
+    name: String,
+    version: String,
+}
+
+#[derive(Serialize)]
+struct UpdateAvailable {
+    app_id: String,
+    new_version: String,
+    branch: String,
+}
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -312,7 +327,7 @@ fn check_file_exists(path: String) -> bool {
 }
 
 #[tauri::command]
-async fn get_installed_flatpaks(app: tauri::AppHandle) -> Result<Vec<String>, String> {
+async fn get_installed_flatpaks(app: tauri::AppHandle) -> Result<Vec<InstalledApp>, String> {
     let shell = app.shell();
 
     // Detect if we're running inside a flatpak
@@ -322,7 +337,7 @@ async fn get_installed_flatpaks(app: tauri::AppHandle) -> Result<Vec<String>, St
         // Inside flatpak, use flatpak-spawn to execute on the host
         shell
             .command("flatpak-spawn")
-            .args(["--host", "flatpak", "list", "--app", "--columns=application"])
+            .args(["--host", "flatpak", "list", "--app", "--columns=application,name,version"])
             .output()
             .await
             .map_err(|e| format!("Failed to execute flatpak-spawn: {}", e))?
@@ -330,7 +345,7 @@ async fn get_installed_flatpaks(app: tauri::AppHandle) -> Result<Vec<String>, St
         // Outside flatpak, use flatpak directly
         shell
             .command("flatpak")
-            .args(["list", "--app", "--columns=application"])
+            .args(["list", "--app", "--columns=application,name,version"])
             .output()
             .await
             .map_err(|e| format!("Failed to execute flatpak: {}", e))?
@@ -342,13 +357,140 @@ async fn get_installed_flatpaks(app: tauri::AppHandle) -> Result<Vec<String>, St
     }
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let app_ids: Vec<String> = stdout
+    let apps: Vec<InstalledApp> = stdout
         .lines()
         .filter(|line| !line.trim().is_empty())
-        .map(|line| line.trim().to_string())
+        .filter_map(|line| {
+            let parts: Vec<&str> = line.split('\t').collect();
+            if parts.len() >= 3 {
+                Some(InstalledApp {
+                    app_id: parts[0].trim().to_string(),
+                    name: parts[1].trim().to_string(),
+                    version: parts[2].trim().to_string(),
+                })
+            } else {
+                None
+            }
+        })
         .collect();
 
-    Ok(app_ids)
+    Ok(apps)
+}
+
+#[tauri::command]
+async fn get_available_updates(app: tauri::AppHandle) -> Result<Vec<UpdateAvailable>, String> {
+    let shell = app.shell();
+
+    // Detect if we're running inside a flatpak
+    let is_flatpak = std::env::var("FLATPAK_ID").is_ok();
+
+    let output = if is_flatpak {
+        // Inside flatpak, use flatpak-spawn to execute on the host
+        shell
+            .command("flatpak-spawn")
+            .args(["--host", "flatpak", "remote-ls", "--updates", "--columns=application,version,branch"])
+            .output()
+            .await
+            .map_err(|e| format!("Failed to execute flatpak-spawn: {}", e))?
+    } else {
+        // Outside flatpak, use flatpak directly
+        shell
+            .command("flatpak")
+            .args(["remote-ls", "--updates", "--columns=application,version,branch"])
+            .output()
+            .await
+            .map_err(|e| format!("Failed to execute flatpak: {}", e))?
+    };
+
+    if !output.status.success() {
+        let error = String::from_utf8_lossy(&output.stderr);
+        return Err(format!("Flatpak command failed: {}", error));
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let updates: Vec<UpdateAvailable> = stdout
+        .lines()
+        .filter(|line| !line.trim().is_empty())
+        .filter_map(|line| {
+            let parts: Vec<&str> = line.split('\t').collect();
+            if parts.len() >= 3 {
+                Some(UpdateAvailable {
+                    app_id: parts[0].trim().to_string(),
+                    new_version: parts[1].trim().to_string(),
+                    branch: parts[2].trim().to_string(),
+                })
+            } else if parts.len() >= 2 {
+                // Sometimes version might be empty, branch in position 2
+                Some(UpdateAvailable {
+                    app_id: parts[0].trim().to_string(),
+                    new_version: String::new(),
+                    branch: parts.get(1).unwrap_or(&"stable").trim().to_string(),
+                })
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    Ok(updates)
+}
+
+#[tauri::command]
+async fn update_flatpak(app: tauri::AppHandle, app_id: String) -> Result<(), String> {
+    app.emit(
+        "install-output",
+        format!("Iniciando actualización de {}...", app_id),
+    )
+    .map_err(|e| format!("Failed to emit: {}", e))?;
+
+    let shell = app.shell();
+
+    // Detect if we're running inside a flatpak
+    let is_flatpak = std::env::var("FLATPAK_ID").is_ok();
+
+    let (mut rx, _child) = if is_flatpak {
+        // Inside flatpak, use flatpak-spawn to execute on the host
+        shell
+            .command("flatpak-spawn")
+            .args(["--host", "flatpak", "update", "-y", &app_id])
+            .spawn()
+            .map_err(|e| format!("Failed to spawn flatpak-spawn: {}", e))?
+    } else {
+        // Outside flatpak, use flatpak directly
+        shell
+            .command("flatpak")
+            .args(["update", "-y", &app_id])
+            .spawn()
+            .map_err(|e| format!("Failed to spawn flatpak: {}", e))?
+    };
+
+    // Read output in real-time
+    while let Some(event) = rx.recv().await {
+        match event {
+            tauri_plugin_shell::process::CommandEvent::Stdout(line) => {
+                let output = String::from_utf8_lossy(&line);
+                app.emit("install-output", output.to_string())
+                    .map_err(|e| format!("Failed to emit event: {}", e))?;
+            }
+            tauri_plugin_shell::process::CommandEvent::Stderr(line) => {
+                let output = String::from_utf8_lossy(&line);
+                app.emit("install-output", output.to_string())
+                    .map_err(|e| format!("Failed to emit event: {}", e))?;
+            }
+            tauri_plugin_shell::process::CommandEvent::Error(err) => {
+                app.emit("install-error", err)
+                    .map_err(|e| format!("Failed to emit error: {}", e))?;
+            }
+            tauri_plugin_shell::process::CommandEvent::Terminated(payload) => {
+                app.emit("install-completed", payload.code.unwrap_or(-1))
+                    .map_err(|e| format!("Failed to emit completion: {}", e))?;
+                break;
+            }
+            _ => {}
+        }
+    }
+
+    Ok(())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -373,7 +515,9 @@ pub fn run() {
             download_and_cache_image,
             get_cached_image_path,
             check_file_exists,
-            get_installed_flatpaks
+            get_installed_flatpaks,
+            get_available_updates,
+            update_flatpak
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

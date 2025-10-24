@@ -1,14 +1,38 @@
 import { create } from "zustand";
 
+export interface InstalledAppInfo {
+	appId: string;
+	name: string;
+	version: string;
+}
+
+export interface UpdateAvailableInfo {
+	appId: string;
+	newVersion: string;
+	branch: string;
+}
+
 interface InstalledAppsStore {
+	// Mantiene la estructura key-value para verificación rápida
 	installedApps: Record<string, boolean>;
+	// Nueva estructura con información completa
+	installedAppsInfo: InstalledAppInfo[];
+	// Apps que tienen actualizaciones disponibles
+	availableUpdates: Record<string, UpdateAvailableInfo>;
 	setInstalledApp: (appId: string, isInstalled: boolean) => void;
 	setInstalledApps: (apps: Record<string, boolean>) => void;
+	setInstalledAppsInfo: (apps: InstalledAppInfo[]) => void;
+	setAvailableUpdates: (updates: UpdateAvailableInfo[]) => void;
 	isAppInstalled: (appId: string) => boolean;
+	getInstalledAppsInfo: () => InstalledAppInfo[];
+	hasUpdate: (appId: string) => boolean;
+	getUpdateInfo: (appId: string) => UpdateAvailableInfo | undefined;
 }
 
 export const useInstalledAppsStore = create<InstalledAppsStore>((set, get) => ({
 	installedApps: {},
+	installedAppsInfo: [],
+	availableUpdates: {},
 
 	setInstalledApp: (appId: string, isInstalled: boolean) =>
 		set((state) => ({
@@ -21,8 +45,45 @@ export const useInstalledAppsStore = create<InstalledAppsStore>((set, get) => ({
 	setInstalledApps: (apps: Record<string, boolean>) =>
 		set({ installedApps: apps }),
 
+	setInstalledAppsInfo: (apps: InstalledAppInfo[]) =>
+		set(() => {
+			// También actualizar installedApps para mantener retrocompatibilidad
+			const installedAppsMap: Record<string, boolean> = {};
+			for (const app of apps) {
+				installedAppsMap[app.appId] = true;
+			}
+			return {
+				installedAppsInfo: apps,
+				installedApps: installedAppsMap,
+			};
+		}),
+
+	setAvailableUpdates: (updates: UpdateAvailableInfo[]) =>
+		set(() => {
+			const updatesMap: Record<string, UpdateAvailableInfo> = {};
+			for (const update of updates) {
+				updatesMap[update.appId] = update;
+			}
+			return { availableUpdates: updatesMap };
+		}),
+
 	isAppInstalled: (appId: string) => {
 		const state = get();
 		return state.installedApps[appId] ?? false;
+	},
+
+	getInstalledAppsInfo: () => {
+		const state = get();
+		return state.installedAppsInfo;
+	},
+
+	hasUpdate: (appId: string) => {
+		const state = get();
+		return appId in state.availableUpdates;
+	},
+
+	getUpdateInfo: (appId: string) => {
+		const state = get();
+		return state.availableUpdates[appId];
 	},
 }));

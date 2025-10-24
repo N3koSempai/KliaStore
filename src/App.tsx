@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useAppInitialization } from "./hooks/useAppInitialization";
+import { useAvailableUpdates } from "./hooks/useAvailableUpdates";
 import { useInstalledApps } from "./hooks/useInstalledApps";
 import { AppDetails } from "./pages/appDetails/AppDetails";
 import { CategoryApps } from "./pages/categoryApps/CategoryApps";
 import { Home } from "./pages/home/Home";
+import { MyApps } from "./pages/myApps/MyApps";
 import { Welcome } from "./pages/welcome/Welcome";
 import type { AppStream } from "./types";
 import "./App.css";
@@ -11,11 +13,14 @@ import "./App.css";
 function App() {
 	const [selectedApp, setSelectedApp] = useState<AppStream | null>(null);
 	const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+	const [showMyApps, setShowMyApps] = useState(false);
 	const [showWelcome, setShowWelcome] = useState(true);
 	const { isFirstLaunch, isInitializing, error } = useAppInitialization();
 
 	// Load installed apps on startup (non-blocking)
 	useInstalledApps();
+	// Load available updates on startup (non-blocking)
+	useAvailableUpdates();
 
 	const handleWelcomeComplete = () => {
 		setShowWelcome(false);
@@ -82,8 +87,16 @@ function App() {
 		);
 	}
 
+	if (showMyApps) {
+		return <MyApps onBack={() => setShowMyApps(false)} />;
+	}
+
 	return (
-		<Home onAppSelect={setSelectedApp} onCategorySelect={setSelectedCategory} />
+		<Home
+			onAppSelect={setSelectedApp}
+			onCategorySelect={setSelectedCategory}
+			onMyAppsClick={() => setShowMyApps(true)}
+		/>
 	);
 }
 

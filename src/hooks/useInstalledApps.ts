@@ -1,22 +1,30 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect } from "react";
+import type { InstalledAppInfo } from "../store/installedAppsStore";
 import { useInstalledAppsStore } from "../store/installedAppsStore";
 
+interface InstalledAppRust {
+	app_id: string;
+	name: string;
+	version: string;
+}
+
 export const useInstalledApps = () => {
-	const { setInstalledApps } = useInstalledAppsStore();
+	const { setInstalledAppsInfo } = useInstalledAppsStore();
 
 	useEffect(() => {
 		const loadInstalledApps = async () => {
 			try {
-				const appIds = await invoke<string[]>("get_installed_flatpaks");
+				const apps = await invoke<InstalledAppRust[]>("get_installed_flatpaks");
 
-				// Convert array of appIds to Record<string, boolean>
-				const installedAppsMap: Record<string, boolean> = {};
-				for (const appId of appIds) {
-					installedAppsMap[appId] = true;
-				}
+				// Convert from Rust format to TypeScript format
+				const installedAppsInfo: InstalledAppInfo[] = apps.map((app) => ({
+					appId: app.app_id,
+					name: app.name,
+					version: app.version,
+				}));
 
-				setInstalledApps(installedAppsMap);
+				setInstalledAppsInfo(installedAppsInfo);
 			} catch (error) {
 				// If loading fails, don't block the app
 				console.error("Error loading installed apps:", error);
@@ -25,5 +33,5 @@ export const useInstalledApps = () => {
 
 		// Execute asynchronously without blocking
 		loadInstalledApps();
-	}, [setInstalledApps]);
+	}, [setInstalledAppsInfo]);
 };
