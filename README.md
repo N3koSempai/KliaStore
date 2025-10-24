@@ -9,6 +9,7 @@ A modern desktop application for browsing and managing Flatpak applications from
 - Browse by categories
 - Smart caching system for images and app data
 - Install Flatpak applications directly
+- List your flatpak apps and updates
 - Built with Tauri, React, and TypeScript
 
 ## Tech Stack
