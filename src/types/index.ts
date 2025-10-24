@@ -68,6 +68,12 @@ export interface AppStream {
 		caption?: string;
 		default?: boolean;
 	}>;
+	releases?: Array<{
+		timestamp: string;
+		version: string;
+		description: string;
+		url?: string;
+	}>;
 }
 
 export interface AppOfTheDayResponse {
