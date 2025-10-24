@@ -149,31 +149,39 @@ Automatically detects image type from HTTP `Content-Type` header:
 
 ### 2. Database Caching
 
-Intelligent daily caching for app data to minimize API calls and improve performance.
+Intelligent caching system for app data with configurable expiration times to minimize API calls and improve performance.
 
 #### Architecture
 - **Database**: SQLite (`~/.local/share/com.gatorand.klia-store/kliastore.db`)
 - **Tables**:
-  - `destacados`: Stores app of the day data
-  - `apps_of_the_week`: Stores weekly featured apps
+  - `destacados`: Stores app of the day data (daily cache)
+  - `apps_of_the_week`: Stores weekly featured apps (daily cache)
+  - `categories`: Stores Flathub categories (weekly cache - 7 days)
   - `cache_metadata`: Tracks last update dates per section
 
 #### Cache Strategy
-The system uses date-based cache invalidation:
-1. **On App Launch**: Check if cached data is from current day
-2. **Same Day**: Load from SQLite database (no API calls)
-3. **New Day**: Fetch from API and update database
+The system uses date-based cache invalidation with configurable durations:
+1. **On App Launch**: Check if cached data is older than specified duration
+2. **Valid Cache**: Load from SQLite database (no API calls)
+3. **Expired Cache**: Fetch from API and update database
+
+**Cache Durations**:
+- App of the Day: Daily (0 days = current day only)
+- Apps of the Week: Daily (0 days = current day only)
+- Categories: Weekly (7 days)
 
 #### Components
 
 **Database Cache Manager** (`src/utils/dbCache.ts`):
 - `DBCacheManager`: Singleton managing all DB cache operations
 - Key methods:
-  - `shouldUpdateSection(sectionName)`: Returns true if data is from a previous day
+  - `shouldUpdateSection(sectionName, maxDaysOld)`: Returns true if data is older than maxDaysOld days
   - `getCachedAppOfTheDay()`: Retrieves cached app of the day
   - `cacheAppOfTheDay(app)`: Stores app of the day with current date
   - `getCachedAppsOfTheWeek()`: Retrieves cached weekly apps
   - `cacheAppsOfTheWeek(apps)`: Stores weekly apps with current date
+  - `getCachedCategories()`: Retrieves cached categories
+  - `cacheCategories(categories)`: Stores categories with current date
   - `updateSectionDate(sectionName)`: Updates last_update_date in cache_metadata
 
 **Database Schema**:
@@ -205,11 +213,19 @@ CREATE TABLE cache_metadata (
   last_update_date TEXT NOT NULL,  -- YYYY-MM-DD format
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Categories (weekly cache)
+CREATE TABLE categories (
+  category_name TEXT PRIMARY KEY,
+  cached_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 ```
 
-#### Cache Flow Example (App of the Day)
+#### Cache Flow Examples
+
+**App of the Day (Daily Cache)**:
 1. **User opens app**
-2. `useAppOfTheDay` hook calls `dbCacheManager.shouldUpdateSection("appOfTheDay")`
+2. `useAppOfTheDay` hook calls `dbCacheManager.shouldUpdateSection("appOfTheDay", 0)`
 3. Check `cache_metadata` for last_update_date
 4. **If same day**:
    - Load from `destacados` table
@@ -220,11 +236,25 @@ CREATE TABLE cache_metadata (
    - Update `cache_metadata` with current date
    - Return fresh data
 
+**Categories (Weekly Cache)**:
+1. **User opens app**
+2. `useCategories` hook calls `dbCacheManager.shouldUpdateSection("categories", 7)`
+3. Check `cache_metadata` for last_update_date
+4. **If less than 7 days old**:
+   - Load from `categories` table
+   - Return cached data (no API call)
+5. **If 7+ days old or no cache**:
+   - Call Flathub API
+   - Store in `categories` table
+   - Update `cache_metadata` with current date
+   - Return fresh data
+
 #### Benefits
-- **Reduced API Calls**: Only 1 API call per day per section (instead of every app launch)
+- **Reduced API Calls**: Only 1 API call per configured period (daily/weekly) instead of every app launch
 - **Faster Load Times**: SQLite queries are instant vs network requests
 - **Offline Support**: Can show cached data even without internet
 - **Bandwidth Savings**: Minimal data transfer for daily usage
+- **Flexible Expiration**: Different cache durations for different data types
 
 ## Key Implementation Details
 
@@ -280,6 +310,11 @@ CREATE TABLE cache_metadata (
    - Responsive grid layout (5 columns on large screens)
 
 ## Development Guidelines
+
+### Code Style
+- **IMPORTANT**: All code comments must be written in English
+- Use clear, descriptive variable and function names
+- Follow TypeScript best practices and type safety
 
 ### Adding New API Endpoints
 1. Add TypeScript types in `src/types/index.ts`

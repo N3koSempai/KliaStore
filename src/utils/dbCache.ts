@@ -34,7 +34,13 @@ export class DBCacheManager {
 		return now.toISOString().split("T")[0]; // YYYY-MM-DD
 	}
 
-	async shouldUpdateSection(sectionName: string): Promise<boolean> {
+	private getDateDaysAgo(daysAgo: number): string {
+		const date = new Date();
+		date.setDate(date.getDate() - daysAgo);
+		return date.toISOString().split("T")[0]; // YYYY-MM-DD
+	}
+
+	async shouldUpdateSection(sectionName: string, maxDaysOld = 0): Promise<boolean> {
 		await this.initialize();
 		if (!this.db) throw new Error("Database not initialized");
 
@@ -46,10 +52,17 @@ export class DBCacheManager {
 		);
 
 		if (result.length === 0) {
-			return true; // No hay caché, necesita actualizar
+			return true; // No cache exists, needs update
 		}
 
-		return result[0].last_update_date !== currentDate;
+		// If maxDaysOld is 0, compare with current date (daily behavior)
+		if (maxDaysOld === 0) {
+			return result[0].last_update_date !== currentDate;
+		}
+
+		// If maxDaysOld > 0, check if last update is older than maxDaysOld days
+		const oldestAllowedDate = this.getDateDaysAgo(maxDaysOld);
+		return result[0].last_update_date < oldestAllowedDate;
 	}
 
 	async updateSectionDate(sectionName: string): Promise<void> {
@@ -167,6 +180,37 @@ export class DBCacheManager {
 		}
 
 		await this.updateSectionDate("appsOfTheWeek");
+	}
+
+	// Categories (weekly cache)
+	async getCachedCategories(): Promise<string[]> {
+		await this.initialize();
+		if (!this.db) throw new Error("Database not initialized");
+
+		const result = await this.db.select<
+			Array<{
+				category_name: string;
+			}>
+		>("SELECT category_name FROM categories ORDER BY category_name");
+
+		return result.map((row) => row.category_name);
+	}
+
+	async cacheCategories(categories: string[]): Promise<void> {
+		await this.initialize();
+		if (!this.db) throw new Error("Database not initialized");
+
+		// Clear table first
+		await this.db.execute("DELETE FROM categories");
+
+		for (const category of categories) {
+			await this.db.execute(
+				"INSERT INTO categories (category_name) VALUES ($1)",
+				[category],
+			);
+		}
+
+		await this.updateSectionDate("categories");
 	}
 }
 

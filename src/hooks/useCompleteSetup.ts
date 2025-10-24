@@ -38,7 +38,7 @@ export async function completeSetup() {
       )
     `);
 
-		// Tabla para app destacada (app of the day)
+		// Table for featured app (app of the day)
 		await db.execute(`
       CREATE TABLE IF NOT EXISTS destacados (
         app_id TEXT PRIMARY KEY,
@@ -51,7 +51,7 @@ export async function completeSetup() {
       )
     `);
 
-		// Tabla para apps de la semana
+		// Table for apps of the week
 		await db.execute(`
       CREATE TABLE IF NOT EXISTS apps_of_the_week (
         app_id TEXT PRIMARY KEY,
@@ -63,12 +63,20 @@ export async function completeSetup() {
       )
     `);
 
-		// Tabla para metadata de caché (fechas de actualización)
+		// Table for cache metadata (update dates)
 		await db.execute(`
       CREATE TABLE IF NOT EXISTS cache_metadata (
         section_name TEXT PRIMARY KEY,
         last_update_date TEXT NOT NULL,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+		// Table for categories (weekly cache)
+		await db.execute(`
+      CREATE TABLE IF NOT EXISTS categories (
+        category_name TEXT PRIMARY KEY,
+        cached_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
