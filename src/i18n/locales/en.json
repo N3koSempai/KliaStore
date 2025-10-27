@@ -1,0 +1,103 @@
+{
+  "common": {
+    "search": "Search",
+    "loading": "Loading...",
+    "error": "Error",
+    "noResults": "No results found",
+    "retry": "Retry",
+    "close": "Close",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save"
+  },
+  "home": {
+    "myApps": "My Apps",
+    "searchPlaceholder": "Search for apps...",
+    "searching": "Searching...",
+    "searchResults": "Results for \"{{query}}\"",
+    "noResultsFor": "No results found for \"{{query}}\"",
+    "featured": "Featured",
+    "appOfTheDay": "App of the day",
+    "appsOfTheWeek": "Apps of the week",
+    "categories": "Categories",
+    "errorLoadingApp": "Error loading app of the day",
+    "errorLoadingApps": "Error loading apps: {{error}}",
+    "errorLoadingCategories": "Error loading categories: {{error}}",
+    "wantYourAppHere": "Want your app here?",
+    "contactUs": "Contact us",
+    "noIcon": "No icon",
+    "noImage": "No image",
+    "noDescription": "No description available"
+  },
+  "appDetails": {
+    "install": "Install",
+    "uninstall": "Uninstall",
+    "update": "Update",
+    "launch": "Launch",
+    "installing": "Installing...",
+    "uninstalling": "Uninstalling...",
+    "updating": "Updating...",
+    "screenshots": "Screenshots",
+    "description": "Description",
+    "releaseNotes": "Release Notes",
+    "version": "Version",
+    "developer": "Developer",
+    "license": "License",
+    "category": "Category",
+    "size": "Size",
+    "noScreenshots": "No screenshots available",
+    "errorLoading": "Error loading app details"
+  },
+  "myApps": {
+    "title": "My Apps",
+    "installed": "Installed",
+    "updates": "Updates",
+    "noAppsInstalled": "No apps installed yet",
+    "noUpdatesAvailable": "No updates available",
+    "updateAll": "Update All",
+    "checkingUpdates": "Checking for updates...",
+    "updateAvailable": "Update available",
+    "upToDate": "Up to date"
+  },
+  "categoryApps": {
+    "title": "{{category}}",
+    "loading": "Loading apps...",
+    "error": "Error loading apps",
+    "noApps": "No apps found in this category"
+  },
+  "welcome": {
+    "slide1": {
+      "title": "Welcome to Klia Store",
+      "description": "Your gateway to discover and install amazing applications"
+    },
+    "slide2": {
+      "title": "Did you know...",
+      "description": "Klia Store uses smart caching to avoid unnecessary bandwidth usage"
+    },
+    "slide3": {
+      "title": "Did you know...",
+      "description": "NekoSempai created this store to provide more opportunities for open source developers to receive donations through cryptocurrency payments"
+    },
+    "slide4": {
+      "title": "Easy Installation",
+      "description": "Install apps with just one click and keep them updated automatically"
+    },
+    "slide5": {
+      "title": "Ready to Start",
+      "description": "Let's explore the world of open source applications together!"
+    },
+    "skip": "Skip",
+    "getStarted": "Get Started",
+    "settingUp": "Setting up..."
+  },
+  "terminal": {
+    "title": "Terminal",
+    "placeholder": "Enter command...",
+    "clear": "Clear",
+    "running": "Running..."
+  },
+  "releaseNotes": {
+    "title": "Release Notes",
+    "noNotes": "No release notes available"
+  }
+}

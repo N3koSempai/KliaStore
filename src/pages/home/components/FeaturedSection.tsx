@@ -5,6 +5,7 @@ import {
 	Skeleton,
 	Typography,
 } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import { CachedImage } from "../../../components/CachedImage";
 import { useAppOfTheDay } from "../../../hooks/useAppOfTheDay";
 import type { AppStream } from "../../../types";
@@ -14,13 +15,14 @@ interface FeaturedSectionProps {
 }
 
 export const FeaturedSection = ({ onAppSelect }: FeaturedSectionProps) => {
+	const { t } = useTranslation();
 	const { data: appOfTheDay, isLoading, error } = useAppOfTheDay();
 
 	if (isLoading) {
 		return (
 			<Box sx={{ mb: 4 }}>
 				<Typography variant="h5" gutterBottom>
-					Destacados
+					{t("home.featured")}
 				</Typography>
 				<Card
 					sx={{
@@ -58,7 +60,7 @@ export const FeaturedSection = ({ onAppSelect }: FeaturedSectionProps) => {
 		return (
 			<Box sx={{ mb: 4 }}>
 				<Typography variant="h5" gutterBottom>
-					Destacados
+					{t("home.featured")}
 				</Typography>
 				<Box
 					sx={{
@@ -71,7 +73,7 @@ export const FeaturedSection = ({ onAppSelect }: FeaturedSectionProps) => {
 					}}
 				>
 					<Typography variant="body1" color="error">
-						Error al cargar la aplicación del día
+						{t("home.errorLoadingApp")}
 					</Typography>
 				</Box>
 			</Box>
@@ -81,7 +83,7 @@ export const FeaturedSection = ({ onAppSelect }: FeaturedSectionProps) => {
 	return (
 		<Box sx={{ mb: 4 }}>
 			<Typography variant="h5" gutterBottom>
-				Destacados
+				{t("home.featured")}
 			</Typography>
 			<Card
 				onClick={() =>
@@ -128,7 +130,7 @@ export const FeaturedSection = ({ onAppSelect }: FeaturedSectionProps) => {
 					}}
 				>
 					<Typography variant="overline" color="primary" gutterBottom>
-						App del día
+						{t("home.appOfTheDay")}
 					</Typography>
 					<Typography variant="h4" component="div" gutterBottom>
 						{appOfTheDay?.name || appOfTheDay?.app_id}

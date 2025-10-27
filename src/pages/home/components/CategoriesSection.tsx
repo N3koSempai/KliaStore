@@ -6,6 +6,7 @@ import {
 	Skeleton,
 	Typography,
 } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import { v4 as uuidv4 } from "uuid";
 import { useCategories } from "../../../hooks/useCategories";
 
@@ -16,17 +17,18 @@ interface CategoriesSectionProps {
 export const CategoriesSection = ({
 	onCategorySelect,
 }: CategoriesSectionProps) => {
+	const { t } = useTranslation();
 	const { data: categories, isLoading, error } = useCategories();
 
 	return (
 		<Box sx={{ mb: 4 }}>
 			<Typography variant="h5" gutterBottom>
-				Categorías
+				{t("home.categories")}
 			</Typography>
 
 			{error && (
 				<Typography color="error">
-					Error al cargar las categorías: {error.message}
+					{t("home.errorLoadingCategories", { error: error.message })}
 				</Typography>
 			)}
 

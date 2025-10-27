@@ -5,6 +5,7 @@ import {
 	Skeleton,
 	Typography,
 } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import { v4 as uuidv4 } from "uuid";
 import { CachedImage } from "../../../components/CachedImage";
 import { useAppsOfTheWeek } from "../../../hooks/useAppsOfTheWeek";
@@ -17,17 +18,18 @@ interface AppsOfTheDaySectionProps {
 export const AppsOfTheDaySection = ({
 	onAppSelect,
 }: AppsOfTheDaySectionProps) => {
+	const { t } = useTranslation();
 	const { data, isLoading, error } = useAppsOfTheWeek();
 
 	return (
 		<Box sx={{ mb: 4 }}>
 			<Typography variant="h5" gutterBottom>
-				Aplicaciones de la semana
+				{t("home.appsOfTheWeek")}
 			</Typography>
 
 			{error && (
 				<Typography color="error">
-					Error al cargar las aplicaciones: {error.message}
+					{t("home.errorLoadingApps", { error: error.message })}
 				</Typography>
 			)}
 
@@ -102,7 +104,7 @@ export const AppsOfTheDaySection = ({
 												/>
 											) : (
 												<Typography variant="caption" color="text.secondary">
-													Sin imagen
+													{t("home.noImage")}
 												</Typography>
 											)}
 										</Box>
@@ -133,7 +135,7 @@ export const AppsOfTheDaySection = ({
 													textOverflow: "ellipsis",
 												}}
 											>
-												{app.summary || "No description available"}
+												{app.summary || t("home.noDescription")}
 											</Typography>
 										</CardContent>
 									</Card>
@@ -183,10 +185,10 @@ export const AppsOfTheDaySection = ({
 										}}
 									>
 										<Typography variant="body2" color="text.secondary">
-											Want your app here?
+											{t("home.wantYourAppHere")}
 										</Typography>
 										<Typography variant="body2" color="primary">
-											Contact us
+											{t("home.contactUs")}
 										</Typography>
 									</CardContent>
 								</Card>

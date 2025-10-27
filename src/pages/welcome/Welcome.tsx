@@ -1,52 +1,44 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { completeSetup } from "../../hooks/useCompleteSetup";
 import "./Welcome.css";
-
-interface WelcomeSlide {
-	id: number;
-	title: string;
-	description: string;
-}
-
-const slides: WelcomeSlide[] = [
-	{
-		id: 1,
-		title: "Welcome to Klia Store",
-		description: "Your gateway to discover and install amazing applications",
-	},
-	{
-		id: 2,
-		title: "Did you know...",
-		description:
-			"Klia Store uses smart caching to avoid unnecessary bandwidth usage",
-	},
-	{
-		id: 3,
-		title: "Did you know...",
-		description:
-			"NekoSempai created this store to provide more opportunities for open source developers to receive donations through cryptocurrency payments",
-	},
-	{
-		id: 4,
-		title: "Easy Installation",
-		description:
-			"Install apps with just one click and keep them updated automatically",
-	},
-	{
-		id: 5,
-		title: "Ready to Start",
-		description:
-			"Let's explore the world of open source applications together!",
-	},
-];
 
 interface WelcomeProps {
 	onComplete: () => void;
 }
 
 export function Welcome({ onComplete }: WelcomeProps) {
+	const { t } = useTranslation();
 	const [currentSlide, setCurrentSlide] = useState(0);
 	const [isCompleting, setIsCompleting] = useState(false);
+
+	const slides = [
+		{
+			id: 1,
+			title: t("welcome.slide1.title"),
+			description: t("welcome.slide1.description"),
+		},
+		{
+			id: 2,
+			title: t("welcome.slide2.title"),
+			description: t("welcome.slide2.description"),
+		},
+		{
+			id: 3,
+			title: t("welcome.slide3.title"),
+			description: t("welcome.slide3.description"),
+		},
+		{
+			id: 4,
+			title: t("welcome.slide4.title"),
+			description: t("welcome.slide4.description"),
+		},
+		{
+			id: 5,
+			title: t("welcome.slide5.title"),
+			description: t("welcome.slide5.description"),
+		},
+	];
 
 	useEffect(() => {
 		const timer = setTimeout(() => {
@@ -145,7 +137,7 @@ export function Welcome({ onComplete }: WelcomeProps) {
 							className="btn-skip"
 							disabled={isCompleting}
 						>
-							Skip
+							{t("welcome.skip")}
 						</button>
 					)}
 					<button
@@ -154,7 +146,7 @@ export function Welcome({ onComplete }: WelcomeProps) {
 						className="btn-accept"
 						disabled={isCompleting}
 					>
-						{isCompleting ? "Setting up..." : "Get Started"}
+						{isCompleting ? t("welcome.settingUp") : t("welcome.getStarted")}
 					</button>
 				</div>
 			</div>

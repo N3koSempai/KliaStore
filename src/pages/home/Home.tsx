@@ -9,6 +9,7 @@ import {
 	Typography,
 } from "@mui/material";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { v4 as uuidv4 } from "uuid";
 import { AppSearchBar } from "../../components/AppSearchBar";
 import { CachedImage } from "../../components/CachedImage";
@@ -24,6 +25,7 @@ interface HomeProps {
 }
 
 export const Home = ({ onAppSelect, onCategorySelect, onMyAppsClick }: HomeProps) => {
+	const { t } = useTranslation();
 	const [searchResults, setSearchResults] = useState<CategoryApp[]>([]);
 	const [isSearching, setIsSearching] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
@@ -76,7 +78,7 @@ export const Home = ({ onAppSelect, onCategorySelect, onMyAppsClick }: HomeProps
 							},
 						}}
 					>
-						My Apps
+						{t("home.myApps")}
 					</Button>
 					<AppSearchBar onSearch={handleSearch} onLoading={setIsSearching} />
 				</Box>
@@ -86,8 +88,8 @@ export const Home = ({ onAppSelect, onCategorySelect, onMyAppsClick }: HomeProps
 					<Box sx={{ mb: 4 }}>
 						<Typography variant="h5" fontWeight="bold" sx={{ mb: 3 }}>
 							{isSearching
-								? "Buscando..."
-								: `Resultados para "${searchQuery}"`}
+								? t("home.searching")
+								: t("home.searchResults", { query: searchQuery })}
 						</Typography>
 
 						{/* Apps grid */}
@@ -202,7 +204,7 @@ export const Home = ({ onAppSelect, onCategorySelect, onMyAppsClick }: HomeProps
 																variant="caption"
 																color="text.secondary"
 															>
-																No icon
+																{t("home.noIcon")}
 															</Typography>
 														)}
 													</Box>
@@ -250,7 +252,7 @@ export const Home = ({ onAppSelect, onCategorySelect, onMyAppsClick }: HomeProps
 						{!isSearching && searchResults.length === 0 && (
 							<Box sx={{ textAlign: "center", py: 8 }}>
 								<Typography variant="h6" color="text.secondary">
-									No se encontraron resultados para "{searchQuery}"
+									{t("home.noResultsFor", { query: searchQuery })}
 								</Typography>
 							</Box>
 						)}
