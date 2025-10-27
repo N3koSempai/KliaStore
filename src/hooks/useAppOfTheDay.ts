@@ -1,30 +1,45 @@
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiService } from "../services/api";
 import type { AppOfTheDayWithDetails } from "../types";
 import { dbCacheManager } from "../utils/dbCache";
 
 export const useAppOfTheDay = () => {
-	return useQuery({
+	const [cachedData, setCachedData] = useState<AppOfTheDayWithDetails | null>(null);
+	const [shouldFetch, setShouldFetch] = useState(false);
+	const [isChecking, setIsChecking] = useState(true);
+
+	// Load cache immediately on mount
+	useEffect(() => {
+		const loadCache = async () => {
+			try {
+				const cached = await dbCacheManager.getCachedAppOfTheDay();
+				if (cached) {
+					console.log("Using cached app of the day");
+					setCachedData(cached);
+				}
+
+				// Check if we need to update based on DB timestamp
+				const shouldUpdate = await dbCacheManager.shouldUpdateSection("appOfTheDay");
+				setShouldFetch(shouldUpdate || !cached);
+			} catch (error) {
+				console.error("Error loading cache:", error);
+				setShouldFetch(true);
+			} finally {
+				setIsChecking(false);
+			}
+		};
+
+		loadCache();
+	}, []);
+
+	// Query only executes if shouldFetch is true
+	const query = useQuery({
 		queryKey: ["appOfTheDay"],
 		queryFn: async () => {
-			// Verificar si necesitamos actualizar el caché
-			const shouldUpdate =
-				await dbCacheManager.shouldUpdateSection("appOfTheDay");
-
-			// Si no necesitamos actualizar, devolver datos cacheados
-			if (!shouldUpdate) {
-				const cachedData = await dbCacheManager.getCachedAppOfTheDay();
-				if (cachedData) {
-					console.log("Using cached app of the day");
-					return cachedData;
-				}
-			}
-
-			// Necesitamos actualizar: llamar a la API
-			console.log("Fetching fresh app of the day from API");
-			const response = await apiService.getAppOfTheDay();
-
 			try {
+				console.log("Fetching fresh app of the day from API");
+				const response = await apiService.getAppOfTheDay();
 				const appStream = await apiService.getAppStream(response.app_id);
 				const appData = {
 					...response,
@@ -33,25 +48,28 @@ export const useAppOfTheDay = () => {
 					appStream: appStream,
 				} as AppOfTheDayWithDetails;
 
-				// Guardar en caché
 				await dbCacheManager.cacheAppOfTheDay(appData);
-
+				setCachedData(appData);
 				return appData;
 			} catch (error) {
-				console.error(
-					`Error fetching appstream for ${response.app_id}:`,
-					error,
-				);
-				const fallbackData = {
-					...response,
-					name: response.app_id,
-				} as AppOfTheDayWithDetails;
-
-				// Guardar en caché incluso si falla appStream
-				await dbCacheManager.cacheAppOfTheDay(fallbackData);
-
-				return fallbackData;
+				console.error("Failed to fetch app of the day:", error);
+				// If API fails and we have cache, use it
+				if (cachedData) {
+					console.log("API failed, using cached data");
+					return cachedData;
+				}
+				throw error;
 			}
 		},
+		enabled: shouldFetch,
+		retry: false,
 	});
+
+	// If checking cache, show as loading
+	// If we have cached data, show it while updating in background
+	return {
+		data: cachedData || query.data,
+		isLoading: isChecking || (query.isLoading && !cachedData),
+		error: query.error,
+	};
 };
