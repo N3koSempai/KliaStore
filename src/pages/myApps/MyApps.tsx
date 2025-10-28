@@ -13,7 +13,6 @@ import {
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { useCallback, useEffect, useState } from "react";
-import { v4 as uuidv4 } from "uuid";
 import { CachedImage } from "../../components/CachedImage";
 import { ReleaseNotesModal } from "../../components/ReleaseNotesModal";
 import { Terminal } from "../../components/Terminal";
@@ -31,8 +30,12 @@ interface MyAppsProps {
 }
 
 export const MyApps = ({ onBack }: MyAppsProps) => {
-	const { getInstalledAppsInfo, hasUpdate, getUpdateInfo, setAvailableUpdates } =
-		useInstalledAppsStore();
+	const {
+		getInstalledAppsInfo,
+		hasUpdate,
+		getUpdateInfo,
+		setAvailableUpdates,
+	} = useInstalledAppsStore();
 	const installedApps = getInstalledAppsInfo();
 	const [selectedAppForNotes, setSelectedAppForNotes] = useState<string | null>(
 		null,
@@ -67,29 +70,29 @@ export const MyApps = ({ onBack }: MyAppsProps) => {
 			setUpdateOutput((prev) => [...prev, `Error: ${event.payload}`]);
 		});
 
-		const unlistenCompleted = listen<number>("install-completed", async (event) => {
-			setIsUpdating(false);
-			if (event.payload === 0) {
-				setUpdateOutput((prev) => [
-					...prev,
-					"",
-					"✓ Actualización completada exitosamente.",
-					"Recargando lista de actualizaciones...",
-				]);
-				// Reload available updates after successful update
-				await reloadAvailableUpdates();
-				setUpdateOutput((prev) => [
-					...prev,
-					"✓ Lista actualizada.",
-				]);
-			} else {
-				setUpdateOutput((prev) => [
-					...prev,
-					"",
-					`✗ Actualización falló con código: ${event.payload}`,
-				]);
-			}
-		});
+		const unlistenCompleted = listen<number>(
+			"install-completed",
+			async (event) => {
+				setIsUpdating(false);
+				if (event.payload === 0) {
+					setUpdateOutput((prev) => [
+						...prev,
+						"",
+						"✓ Actualización completada exitosamente.",
+						"Recargando lista de actualizaciones...",
+					]);
+					// Reload available updates after successful update
+					await reloadAvailableUpdates();
+					setUpdateOutput((prev) => [...prev, "✓ Lista actualizada."]);
+				} else {
+					setUpdateOutput((prev) => [
+						...prev,
+						"",
+						`✗ Actualización falló con código: ${event.payload}`,
+					]);
+				}
+			},
+		);
 
 		return () => {
 			unlistenOutput.then((fn) => fn());
@@ -148,7 +151,9 @@ export const MyApps = ({ onBack }: MyAppsProps) => {
 				{/* Installed apps count */}
 				<Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
 					{installedApps.length}{" "}
-					{installedApps.length === 1 ? "aplicación instalada" : "aplicaciones instaladas"}
+					{installedApps.length === 1
+						? "aplicación instalada"
+						: "aplicaciones instaladas"}
 				</Typography>
 
 				{/* Apps grid */}
@@ -274,7 +279,9 @@ export const MyApps = ({ onBack }: MyAppsProps) => {
 										</Typography>
 
 										{hasUpdate(app.appId) && (
-											<Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+											<Box
+												sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+											>
 												{/* Release Notes Icon */}
 												<IconButton
 													size="small"
