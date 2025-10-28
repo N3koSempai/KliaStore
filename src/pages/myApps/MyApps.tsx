@@ -170,7 +170,7 @@ export const MyApps = ({ onBack }: MyAppsProps) => {
 					>
 						{installedApps.map((app) => (
 							<Card
-								key={uuidv4()}
+								key={app.appId}
 								sx={{
 									height: "100%",
 									display: "flex",
