@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useAppInitialization } from "./hooks/useAppInitialization";
-import { useAvailableUpdates } from "./hooks/useAvailableUpdates";
 import { useInstalledApps } from "./hooks/useInstalledApps";
 import { AppDetails } from "./pages/appDetails/AppDetails";
 import { CategoryApps } from "./pages/categoryApps/CategoryApps";
@@ -18,9 +17,8 @@ function App() {
 	const { isFirstLaunch, isInitializing, error } = useAppInitialization();
 
 	// Load installed apps on startup (non-blocking)
+	// This also loads available updates after installed apps are loaded
 	useInstalledApps();
-	// Load available updates on startup (non-blocking)
-	useAvailableUpdates();
 
 	const handleWelcomeComplete = () => {
 		setShowWelcome(false);

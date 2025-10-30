@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { useEffect } from "react";
 import type { InstalledAppInfo } from "../store/installedAppsStore";
 import { useInstalledAppsStore } from "../store/installedAppsStore";
+import { checkAvailableUpdates } from "../utils/updateChecker";
 
 interface InstalledAppRust {
 	app_id: string;
@@ -10,7 +11,8 @@ interface InstalledAppRust {
 }
 
 export const useInstalledApps = () => {
-	const { setInstalledAppsInfo } = useInstalledAppsStore();
+	const { setInstalledAppsInfo, setAvailableUpdates } =
+		useInstalledAppsStore();
 
 	useEffect(() => {
 		const loadInstalledApps = async () => {
@@ -25,6 +27,10 @@ export const useInstalledApps = () => {
 				}));
 
 				setInstalledAppsInfo(installedAppsInfo);
+
+				// After loading installed apps, check for available updates
+				const updates = await checkAvailableUpdates();
+				setAvailableUpdates(updates);
 			} catch (error) {
 				// If loading fails, don't block the app
 				console.error("Error loading installed apps:", error);
@@ -33,5 +39,5 @@ export const useInstalledApps = () => {
 
 		// Execute asynchronously without blocking
 		loadInstalledApps();
-	}, [setInstalledAppsInfo]);
+	}, [setInstalledAppsInfo, setAvailableUpdates]);
 };

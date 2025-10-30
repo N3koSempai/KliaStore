@@ -16,14 +16,8 @@ import { useCallback, useEffect, useState } from "react";
 import { CachedImage } from "../../components/CachedImage";
 import { ReleaseNotesModal } from "../../components/ReleaseNotesModal";
 import { Terminal } from "../../components/Terminal";
-import type { UpdateAvailableInfo } from "../../store/installedAppsStore";
 import { useInstalledAppsStore } from "../../store/installedAppsStore";
-
-interface UpdateAvailableRust {
-	app_id: string;
-	new_version: string;
-	branch: string;
-}
+import { checkAvailableUpdates } from "../../utils/updateChecker";
 
 interface MyAppsProps {
 	onBack: () => void;
@@ -46,15 +40,8 @@ export const MyApps = ({ onBack }: MyAppsProps) => {
 
 	const reloadAvailableUpdates = useCallback(async () => {
 		try {
-			const updates = await invoke<UpdateAvailableRust[]>(
-				"get_available_updates",
-			);
-			const updatesInfo: UpdateAvailableInfo[] = updates.map((update) => ({
-				appId: update.app_id,
-				newVersion: update.new_version,
-				branch: update.branch,
-			}));
-			setAvailableUpdates(updatesInfo);
+			const updates = await checkAvailableUpdates();
+			setAvailableUpdates(updates);
 		} catch (error) {
 			console.error("Error reloading available updates:", error);
 		}

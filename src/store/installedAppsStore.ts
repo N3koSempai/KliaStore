@@ -19,6 +19,8 @@ interface InstalledAppsStore {
 	installedAppsInfo: InstalledAppInfo[];
 	// Apps que tienen actualizaciones disponibles
 	availableUpdates: Record<string, UpdateAvailableInfo>;
+	// Number of available updates for badge
+	updateCount: number;
 	setInstalledApp: (appId: string, isInstalled: boolean) => void;
 	setInstalledApps: (apps: Record<string, boolean>) => void;
 	setInstalledAppsInfo: (apps: InstalledAppInfo[]) => void;
@@ -27,12 +29,14 @@ interface InstalledAppsStore {
 	getInstalledAppsInfo: () => InstalledAppInfo[];
 	hasUpdate: (appId: string) => boolean;
 	getUpdateInfo: (appId: string) => UpdateAvailableInfo | undefined;
+	getUpdateCount: () => number;
 }
 
 export const useInstalledAppsStore = create<InstalledAppsStore>((set, get) => ({
 	installedApps: {},
 	installedAppsInfo: [],
 	availableUpdates: {},
+	updateCount: 0,
 
 	setInstalledApp: (appId: string, isInstalled: boolean) =>
 		set((state) => ({
@@ -64,7 +68,10 @@ export const useInstalledAppsStore = create<InstalledAppsStore>((set, get) => ({
 			for (const update of updates) {
 				updatesMap[update.appId] = update;
 			}
-			return { availableUpdates: updatesMap };
+			return {
+				availableUpdates: updatesMap,
+				updateCount: updates.length,
+			};
 		}),
 
 	isAppInstalled: (appId: string) => {
@@ -85,5 +92,10 @@ export const useInstalledAppsStore = create<InstalledAppsStore>((set, get) => ({
 	getUpdateInfo: (appId: string) => {
 		const state = get();
 		return state.availableUpdates[appId];
+	},
+
+	getUpdateCount: () => {
+		const state = get();
+		return state.updateCount;
 	},
 }));

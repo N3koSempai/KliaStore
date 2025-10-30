@@ -1,5 +1,6 @@
 import AppsIcon from "@mui/icons-material/Apps";
 import {
+	Badge,
 	Box,
 	Button,
 	Card,
@@ -13,6 +14,7 @@ import { useTranslation } from "react-i18next";
 import { v4 as uuidv4 } from "uuid";
 import { AppSearchBar } from "../../components/AppSearchBar";
 import { CachedImage } from "../../components/CachedImage";
+import { useInstalledAppsStore } from "../../store/installedAppsStore";
 import type { AppStream, CategoryApp } from "../../types";
 import { AppsOfTheDaySection } from "./components/AppsOfTheDaySection";
 import { CategoriesSection } from "./components/CategoriesSection";
@@ -26,6 +28,8 @@ interface HomeProps {
 
 export const Home = ({ onAppSelect, onCategorySelect, onMyAppsClick }: HomeProps) => {
 	const { t } = useTranslation();
+	const { getUpdateCount } = useInstalledAppsStore();
+	const updateCount = getUpdateCount();
 	const [searchResults, setSearchResults] = useState<CategoryApp[]>([]);
 	const [isSearching, setIsSearching] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
@@ -62,24 +66,30 @@ export const Home = ({ onAppSelect, onCategorySelect, onMyAppsClick }: HomeProps
 						mt: 2,
 					}}
 				>
-					<Button
-						variant="outlined"
-						startIcon={<AppsIcon />}
-						onClick={onMyAppsClick}
-						sx={{
-							borderRadius: 3,
-							px: 3,
-							py: 1.5,
-							fontWeight: "bold",
-							borderColor: "rgba(255, 255, 255, 0.1)",
-							"&:hover": {
-								borderColor: "primary.main",
-								backgroundColor: "rgba(25, 118, 210, 0.04)",
-							},
-						}}
+					<Badge
+						badgeContent={updateCount}
+						color="error"
+						invisible={updateCount === 0}
 					>
-						{t("home.myApps")}
-					</Button>
+						<Button
+							variant="outlined"
+							startIcon={<AppsIcon />}
+							onClick={onMyAppsClick}
+							sx={{
+								borderRadius: 3,
+								px: 3,
+								py: 1.5,
+								fontWeight: "bold",
+								borderColor: "rgba(255, 255, 255, 0.1)",
+								"&:hover": {
+									borderColor: "primary.main",
+									backgroundColor: "rgba(25, 118, 210, 0.04)",
+								},
+							}}
+						>
+							{t("home.myApps")}
+						</Button>
+					</Badge>
 					<AppSearchBar onSearch={handleSearch} onLoading={setIsSearching} />
 				</Box>
 

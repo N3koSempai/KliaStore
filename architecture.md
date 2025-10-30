@@ -51,7 +51,9 @@ src/
 ├── types/              # TypeScript type definitions
 │   └── index.ts
 ├── utils/              # Utility functions
-│   └── imageCache.ts   # Image caching manager
+│   ├── imageCache.ts   # Image caching manager
+│   ├── dbCache.ts      # Database cache manager
+│   └── updateChecker.ts # Update checking utility
 ├── theme/              # MUI theme configuration
 │   └── theme.ts
 ├── App.tsx             # Root component with routing
@@ -515,14 +517,86 @@ pnpm tauri build --bundles deb
 3. **Cargo cache**: Set `CARGO_HOME` to persist Rust dependencies
 4. **Clean builds**: Use `--force-clean` to ensure reproducible builds
 
+## Update Badge System
+
+KliaStore includes a notification system that displays the number of available updates on the "My Apps" button in the Home page.
+
+### Architecture
+
+The system uses a centralized state management approach with Zustand store to track available updates:
+
+1. **Update Checking Utility** (`src/utils/updateChecker.ts`):
+   - `checkAvailableUpdates()`: Calls Rust backend to check for Flatpak updates
+   - Returns array of `UpdateAvailableInfo` objects
+   - Centralized function used by multiple components
+
+2. **Zustand Store** (`src/store/installedAppsStore.ts`):
+   - `availableUpdates`: Record mapping appId to update information
+   - `updateCount`: Number of apps with available updates
+   - `setAvailableUpdates()`: Updates both the map and count
+   - `getUpdateCount()`: Returns current count for badge display
+   - `hasUpdate(appId)`: Check if specific app has update
+   - `getUpdateInfo(appId)`: Get update details for specific app
+
+3. **Loading Flow**:
+   - On app startup, `useInstalledApps` hook loads installed Flatpak apps
+   - After loading apps list, automatically calls `checkAvailableUpdates()`
+   - Updates stored in Zustand store and available app-wide
+   - Badge on "My Apps" button reflects real-time count
+
+4. **UI Components**:
+   - **Home.tsx** (`src/pages/home/Home.tsx`):
+     - Displays Badge with `updateCount` on "My Apps" button
+     - Badge only visible when `updateCount > 0`
+     - Uses Material UI `Badge` component with `color="error"`
+
+   - **MyApps.tsx** (`src/pages/myApps/MyApps.tsx`):
+     - Uses cached data from Zustand store
+     - No redundant update checks when entering page
+     - Only re-checks updates after successful app update
+     - Shows "Update" button for apps with available updates
+     - Displays release notes modal with version information
+
+### Benefits
+
+- **Single Source of Truth**: All update data stored in centralized Zustand store
+- **Performance**: Update check only happens once on startup (or after updates)
+- **User Experience**: Badge provides immediate visual feedback about pending updates
+- **Data Reuse**: MyApps page uses cached data, no redundant API calls
+- **Modularity**: Update checking logic separated into utility function
+
+### Flow Diagram
+
+```
+App Startup
+    ↓
+useInstalledApps hook
+    ↓
+Load installed apps (Rust)
+    ↓
+checkAvailableUpdates()
+    ↓
+setAvailableUpdates() → Updates store
+    ↓
+Home.tsx reads updateCount → Shows badge
+    ↓
+User clicks "My Apps"
+    ↓
+MyApps.tsx reads from store → Shows update buttons
+    ↓
+User updates app
+    ↓
+checkAvailableUpdates() → Refresh data
+```
+
 ## Future Considerations
 
 - Implement search functionality
 - Add state management if needed (Zustand/Redux)
 - Add error boundaries
 - Category filtering and browsing
-- App update management
 - Uninstall functionality
 - Cache cleanup/management UI
 - Offline mode support
 - Submit to Flathub repository
+- Auto-check for updates periodically in background
