@@ -5,7 +5,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { CachedImage } from "../../components/CachedImage";
 import { Terminal } from "../../components/Terminal";
@@ -23,6 +23,12 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 		useAppScreenshots(app);
 	const { isAppInstalled, setInstalledApp } = useInstalledAppsStore();
 	const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+	// Generate stable UUIDs for screenshots
+	const screenshotIds = useMemo(
+		() => screenshots?.map(() => uuidv4()) || [],
+		[screenshots],
+	);
 	const [isInstalling, setIsInstalling] = useState(false);
 	const [installOutput, setInstallOutput] = useState<string[]>([]);
 	const [installStatus, setInstallStatus] = useState<
@@ -350,38 +356,49 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 										bgcolor: "grey.900",
 										borderRadius: 2,
 										overflow: "hidden",
-										display: "flex",
-										alignItems: "center",
-										justifyContent: "center",
+										position: "relative",
 									}}
 								>
-									{(() => {
-										const screenshot = screenshots[currentImageIndex];
+									{screenshots.map((screenshot, index) => {
 										// Buscar el tamaño más grande o el primero disponible
 										const largestSize = screenshot.sizes.reduce(
 											(prev, current) =>
-												Number.parseInt(prev.width) >
-												Number.parseInt(current.width)
+												Number.parseInt(prev.width, 10) >
+												Number.parseInt(current.width, 10)
 													? prev
 													: current,
 										);
 										return (
-											<CachedImage
-												appId={app.id}
-												imageUrl={largestSize.src}
-												alt={`Screenshot ${currentImageIndex + 1}`}
-												cacheKey={`${app.id}:::${currentImageIndex + 1}`}
-												variant="rounded"
-												style={{
+											<Box
+												key={screenshotIds[index]}
+												sx={{
+													position: "absolute",
+													top: 0,
+													left: 0,
 													width: "100%",
 													height: "100%",
-													maxWidth: "100%",
-													maxHeight: "100%",
-													objectFit: "contain",
+													display: index === currentImageIndex ? "flex" : "none",
+													alignItems: "center",
+													justifyContent: "center",
 												}}
-											/>
+											>
+												<CachedImage
+													appId={app.id}
+													imageUrl={largestSize.src}
+													alt={`Screenshot ${index + 1}`}
+													cacheKey={`${app.id}:::${index + 1}`}
+													variant="rounded"
+													style={{
+														width: "100%",
+														height: "100%",
+														maxWidth: "100%",
+														maxHeight: "100%",
+														objectFit: "contain",
+													}}
+												/>
+											</Box>
 										);
-									})()}
+									})}
 								</Box>
 
 								{/* Controles del carrusel */}
