@@ -79,13 +79,13 @@ jobs:
         run: |
           VERSION="${{ needs.check-release.outputs.version }}"
           DEB_FILE=$(find src-tauri/target/release/bundle/deb -name "*.deb" -type f)
-          mv "$DEB_FILE" "Klia-Store-beta${VERSION}.deb"
+          mv "$DEB_FILE" "Klia-Store-${VERSION}.deb"
 
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
         with:
           name: deb-package
-          path: Klia-Store-beta*.deb
+          path: Klia-Store-*.deb
 
   build-flatpak:
     needs: check-release
@@ -100,7 +100,7 @@ jobs:
       - name: Build Flatpak
         uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
-          bundle: Klia-Store-beta${{ needs.check-release.outputs.version }}.flatpak
+          bundle: Klia-Store-${{ needs.check-release.outputs.version }}.flatpak
           manifest-path: com.gatorand.klia-store.yml
           cache-key: flatpak-builder-${{ github.sha }}
 
@@ -108,7 +108,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: flatpak-package
-          path: Klia-Store-beta*.flatpak
+          path: Klia-Store-*.flatpak
 
   create-release:
     needs: [check-release, build-deb, build-flatpak]
@@ -132,27 +132,27 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.check-release.outputs.version }}
-          name: Klia Store Beta ${{ needs.check-release.outputs.version }}
+          name: Klia Store ${{ needs.check-release.outputs.version }}
           draft: false
-          prerelease: true
+          prerelease: false
           body: |
-            ## Klia Store Beta ${{ needs.check-release.outputs.version }}
+            ## Klia Store ${{ needs.check-release.outputs.version }}
 
             ### Installation
 
             **Debian/Ubuntu (.deb):**
             ```bash
-            sudo dpkg -i Klia-Store-beta${{ needs.check-release.outputs.version }}.deb
+            sudo dpkg -i Klia-Store-${{ needs.check-release.outputs.version }}.deb
             ```
 
             **Flatpak:**
             ```bash
-            flatpak install Klia-Store-beta${{ needs.check-release.outputs.version }}.flatpak
+            flatpak install Klia-Store-${{ needs.check-release.outputs.version }}.flatpak
             flatpak run com.gatorand.klia-store
             ```
 
             ### Changes
             ${{ github.event.head_commit.message }}
           files: |
-            Klia-Store-beta*.deb
-            Klia-Store-beta*.flatpak
+            Klia-Store-*.deb
+            Klia-Store-*.flatpak

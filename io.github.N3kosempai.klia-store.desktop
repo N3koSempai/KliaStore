@@ -2,7 +2,7 @@
 Name=Klia Store
 Comment=Flatpak application store
 Exec=klia-store
-Icon=com.gatorand.klia-store
+Icon=io.github.N3kosempai.klia-store
 Type=Application
 Categories=System;
 Terminal=false

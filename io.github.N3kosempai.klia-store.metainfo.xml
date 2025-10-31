@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>com.gatorand.klia-store</id>
+  <id>io.github.N3kosempai.klia-store</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>LicenseRef-proprietary=https://github.com/N3koSempai/KliaStore/blob/master/LICENSE.md</project_license>
   <name>Klia Store</name>
@@ -8,7 +8,17 @@
   <description>
     <p>A modern application store for managing Flatpak applications.</p>
   </description>
-  <launchable type="desktop-id">com.gatorand.klia-store.desktop</launchable>
+  <launchable type="desktop-id">io.github.N3kosempai.klia-store.desktop</launchable>
+  <developer id="io.github.N3kosempai">
+    <name>N3koSempai</name>
+  </developer>
+  <url type="homepage">https://github.com/N3koSempai/KliaStore</url>
+  <url type="bugtracker">https://github.com/N3koSempai/KliaStore/issues</url>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/N3koSempai/KliaStore/master/screenshots/screenshot1.png</image>
+    </screenshot>
+  </screenshots>
   <provides>
     <binary>klia-store</binary>
   </provides>
