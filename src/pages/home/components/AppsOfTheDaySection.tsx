@@ -5,6 +5,7 @@ import {
 	Skeleton,
 	Typography,
 } from "@mui/material";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { useTranslation } from "react-i18next";
 import { v4 as uuidv4 } from "uuid";
 import { CachedImage } from "../../../components/CachedImage";
@@ -20,6 +21,15 @@ export const AppsOfTheDaySection = ({
 }: AppsOfTheDaySectionProps) => {
 	const { t } = useTranslation();
 	const { data, isLoading, error } = useAppsOfTheWeek();
+
+	const handleContactClick = async () => {
+		try {
+			// Try to open email client with mailto link
+			await openUrl("mailto:me@nekosempai.addy.io");
+		} catch (error) {
+			console.error("Error opening email client:", error);
+		}
+	};
 
 	return (
 		<Box sx={{ mb: 4 }}>
@@ -145,8 +155,6 @@ export const AppsOfTheDaySection = ({
 							<Box key="promoted" sx={{ flex: "0 0 auto" }}>
 								<Card
 									sx={{
-										cursor: "pointer",
-										"&:hover": { boxShadow: 3 },
 										height: 240,
 										minWidth: 200,
 										maxWidth: 250,
@@ -187,9 +195,26 @@ export const AppsOfTheDaySection = ({
 										<Typography variant="body2" color="text.secondary">
 											{t("home.wantYourAppHere")}
 										</Typography>
-										<Typography variant="body2" color="primary">
+										<Box
+											component="button"
+											onClick={handleContactClick}
+											sx={{
+												color: "primary.main",
+												textDecoration: "none",
+												"&:hover": { textDecoration: "underline" },
+												cursor: "pointer",
+												border: "none",
+												background: "transparent",
+												padding: 0,
+												font: "inherit",
+												fontSize: "0.875rem",
+												boxShadow: "none",
+												"&:focus": { outline: "none", boxShadow: "none" },
+												"&:active": { boxShadow: "none" },
+											}}
+										>
 											{t("home.contactUs")}
-										</Typography>
+										</Box>
 									</CardContent>
 								</Card>
 							</Box>,

@@ -1,4 +1,5 @@
 import AppsIcon from "@mui/icons-material/Apps";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import {
 	Badge,
 	Box,
@@ -6,12 +7,14 @@ import {
 	Card,
 	CardContent,
 	Container,
+	IconButton,
 	Skeleton,
 	Typography,
 } from "@mui/material";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { v4 as uuidv4 } from "uuid";
+import { AboutModal } from "../../components/AboutModal";
 import { AppSearchBar } from "../../components/AppSearchBar";
 import { CachedImage } from "../../components/CachedImage";
 import { useInstalledAppsStore } from "../../store/installedAppsStore";
@@ -33,6 +36,7 @@ export const Home = ({ onAppSelect, onCategorySelect, onMyAppsClick }: HomeProps
 	const [searchResults, setSearchResults] = useState<CategoryApp[]>([]);
 	const [isSearching, setIsSearching] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
+	const [aboutModalOpen, setAboutModalOpen] = useState(false);
 
 	const handleSearch = (query: string, results: CategoryApp[]) => {
 		setSearchQuery(query);
@@ -91,6 +95,19 @@ export const Home = ({ onAppSelect, onCategorySelect, onMyAppsClick }: HomeProps
 						</Button>
 					</Badge>
 					<AppSearchBar onSearch={handleSearch} onLoading={setIsSearching} />
+					<IconButton
+						onClick={() => setAboutModalOpen(true)}
+						sx={{
+							borderRadius: 2,
+							border: "1px solid rgba(255, 255, 255, 0.1)",
+							"&:hover": {
+								borderColor: "primary.main",
+								backgroundColor: "rgba(25, 118, 210, 0.04)",
+							},
+						}}
+					>
+						<InfoOutlinedIcon />
+					</IconButton>
 				</Box>
 
 				{/* Search Results Section */}
@@ -278,6 +295,12 @@ export const Home = ({ onAppSelect, onCategorySelect, onMyAppsClick }: HomeProps
 					</>
 				)}
 			</Box>
+
+			{/* About Modal */}
+			<AboutModal
+				open={aboutModalOpen}
+				onClose={() => setAboutModalOpen(false)}
+			/>
 		</Container>
 	);
 };
