@@ -101,7 +101,7 @@ jobs:
         uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
           bundle: Klia-Store-${{ needs.check-release.outputs.version }}.flatpak
-          manifest-path: com.gatorand.klia-store.yml
+          manifest-path: io.github.N3kosempai.klia-store.yml
           cache-key: flatpak-builder-${{ github.sha }}
 
       - name: Upload Flatpak artifact
@@ -148,7 +148,7 @@ jobs:
             **Flatpak:**
             ```bash
             flatpak install Klia-Store-${{ needs.check-release.outputs.version }}.flatpak
-            flatpak run com.gatorand.klia-store
+            flatpak run io.github.N3kosempai.klia-store
             ```
 
             ### Changes
