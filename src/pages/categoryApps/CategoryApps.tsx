@@ -7,6 +7,7 @@ import {
 	Skeleton,
 	Typography,
 } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import { v4 as uuidv4 } from "uuid";
 import { CachedImage } from "../../components/CachedImage";
 import { useCategoryApps } from "../../hooks/useCategoryApps";
@@ -23,6 +24,7 @@ export const CategoryApps = ({
 	onBack,
 	onAppSelect,
 }: CategoryAppsProps) => {
+	const { t } = useTranslation();
 	const { data, isLoading, error } = useCategoryApps(categoryId);
 
 	const handleAppClick = (categoryApp: CategoryApp) => {
@@ -53,7 +55,7 @@ export const CategoryApps = ({
 
 			{error && (
 				<Typography color="error">
-					Error al cargar las aplicaciones: {error.message}
+					{t("categoryApps.errorLoadingApps", { error: error.message })}
 				</Typography>
 			)}
 
@@ -167,7 +169,7 @@ export const CategoryApps = ({
 												/>
 											) : (
 												<Typography variant="caption" color="text.secondary">
-													No icon
+													{t("home.noIcon")}
 												</Typography>
 											)}
 										</Box>
@@ -217,7 +219,7 @@ export const CategoryApps = ({
 			{!isLoading && data?.hits.length === 0 && (
 				<Box sx={{ textAlign: "center", py: 8 }}>
 					<Typography variant="h6" color="text.secondary">
-						No se encontraron aplicaciones en esta categoría
+						{t("categoryApps.noApps")}
 					</Typography>
 				</Box>
 			)}

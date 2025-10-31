@@ -7,6 +7,7 @@ import {
 	Skeleton,
 	Typography,
 } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import { v4 as uuidv4 } from "uuid";
 import { CachedImage } from "../../components/CachedImage";
 import type { AppStream, CategoryApp } from "../../types";
@@ -26,6 +27,7 @@ export const SearchResults = ({
 	onAppSelect,
 	query,
 }: SearchResultsProps) => {
+	const { t } = useTranslation();
 	const handleAppClick = (categoryApp: CategoryApp) => {
 		const appStream: AppStream = {
 			id: categoryApp.app_id,
@@ -47,7 +49,9 @@ export const SearchResults = ({
 					<ArrowBack />
 				</IconButton>
 				<Typography variant="h4" fontWeight="bold">
-					{isLoading ? "Buscando..." : `Resultados para "${query}"`}
+					{isLoading
+						? t("searchResults.searching")
+						: t("searchResults.resultsFor", { query })}
 				</Typography>
 			</Box>
 
@@ -161,7 +165,7 @@ export const SearchResults = ({
 												/>
 											) : (
 												<Typography variant="caption" color="text.secondary">
-													No icon
+													{t("home.noIcon")}
 												</Typography>
 											)}
 										</Box>
@@ -211,7 +215,7 @@ export const SearchResults = ({
 			{!isLoading && results.length === 0 && (
 				<Box sx={{ textAlign: "center", py: 8 }}>
 					<Typography variant="h6" color="text.secondary">
-						No se encontraron resultados para "{query}"
+						{t("searchResults.noResultsFor", { query })}
 					</Typography>
 				</Box>
 			)}

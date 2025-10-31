@@ -46,7 +46,20 @@
     "category": "Category",
     "size": "Size",
     "noScreenshots": "No screenshots available",
-    "errorLoading": "Error loading app details"
+    "errorLoading": "Error loading app details",
+    "noIcon": "No icon",
+    "installed": "Installed",
+    "installationInProgress": "Installation in progress",
+    "installationCompleted": "Installation completed successfully!",
+    "installationError": "Installation error",
+    "getLog": "Get log",
+    "accept": "Accept",
+    "aboutThisApp": "About this app",
+    "installationCompletedSuccess": "✓ Installation completed successfully.",
+    "installationFailed": "✗ Installation failed with code: {{code}}",
+    "preparingInstallation": "Preparing custom installation...",
+    "downloadingReference": "Downloading flatpak reference...",
+    "errorInvokingCommand": "✗ Error invoking command: {{error}}"
   },
   "myApps": {
     "title": "My Apps",
@@ -57,13 +70,31 @@
     "updateAll": "Update All",
     "checkingUpdates": "Checking for updates...",
     "updateAvailable": "Update available",
-    "upToDate": "Up to date"
+    "upToDate": "Up to date",
+    "appInstalled": "{{count}} app installed",
+    "appsInstalled": "{{count}} apps installed",
+    "updating": "Updating {{appId}}",
+    "closeButton": "Close",
+    "updateCompletedSuccess": "✓ Update completed successfully.",
+    "reloadingUpdateList": "Reloading update list...",
+    "listUpdated": "✓ List updated.",
+    "updateFailed": "✗ Update failed with code: {{code}}",
+    "preparingUpdate": "Preparing update for {{appId}}...",
+    "errorInvokingCommand": "✗ Error invoking command: {{error}}",
+    "noAppsInstalledMessage": "You don't have any apps installed",
+    "installAppsMessage": "Install apps from the store to see them here"
   },
   "categoryApps": {
     "title": "{{category}}",
     "loading": "Loading apps...",
     "error": "Error loading apps",
-    "noApps": "No apps found in this category"
+    "noApps": "No apps found in this category",
+    "errorLoadingApps": "Error loading apps: {{error}}"
+  },
+  "searchResults": {
+    "searching": "Searching...",
+    "resultsFor": "Results for \"{{query}}\"",
+    "noResultsFor": "No results found for \"{{query}}\""
   },
   "welcome": {
     "slide1": {

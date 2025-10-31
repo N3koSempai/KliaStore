@@ -6,6 +6,7 @@ import { listen } from "@tauri-apps/api/event";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { v4 as uuidv4 } from "uuid";
 import { CachedImage } from "../../components/CachedImage";
 import { Terminal } from "../../components/Terminal";
@@ -19,6 +20,7 @@ interface AppDetailsProps {
 }
 
 export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
+	const { t } = useTranslation();
 	const { screenshots, isLoading: isLoadingScreenshots } =
 		useAppScreenshots(app);
 	const { isAppInstalled, setInstalledApp } = useInstalledAppsStore();
@@ -39,6 +41,7 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 	const isInstalled = isAppInstalled(app.id);
 
 	// Escuchar eventos de instalación
+	// biome-ignore lint/correctness/useExhaustiveDependencies: Event listeners should only be set up once on mount
 	useEffect(() => {
 		const unlistenOutput = listen<string>("install-output", (event) => {
 			setInstallOutput((prev) => [...prev, event.payload]);
@@ -54,7 +57,7 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 				setInstallOutput((prev) => [
 					...prev,
 					"",
-					"✓ Instalación completada exitosamente.",
+					t("appDetails.installationCompletedSuccess"),
 				]);
 				setInstallStatus("success");
 				// Mark app as installed in the store
@@ -63,7 +66,7 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 				setInstallOutput((prev) => [
 					...prev,
 					"",
-					`✗ Instalación falló con código: ${event.payload}`,
+					t("appDetails.installationFailed", { code: event.payload }),
 				]);
 				setInstallStatus("error");
 			}
@@ -74,7 +77,7 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 			unlistenError.then((fn) => fn());
 			unlistenCompleted.then((fn) => fn());
 		};
-	}, [app.id, setInstalledApp]);
+	}, []);
 
 	// Función para limpiar HTML de la descripción
 	const stripHtml = (html: string) => {
@@ -103,8 +106,8 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 		setIsInstalling(true);
 		setInstallStatus("installing");
 		setInstallOutput([
-			"Preparando instalación personalizada...",
-			"Descargando referencia de flatpak...",
+			t("appDetails.preparingInstallation"),
+			t("appDetails.downloadingReference"),
 			"",
 		]);
 
@@ -118,7 +121,7 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 			setInstallOutput((prev) => [
 				...prev,
 				"",
-				`✗ Error al invocar comando: ${error}`,
+				t("appDetails.errorInvokingCommand", { error }),
 			]);
 		}
 	};
@@ -199,7 +202,7 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 							/>
 						) : (
 							<Typography variant="caption" color="text.secondary">
-								Sin icono
+								{t("appDetails.noIcon")}
 							</Typography>
 						)}
 					</Box>
@@ -254,10 +257,10 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 					}}
 				>
 					{isInstalled || installStatus === "success"
-						? "Installed"
+						? t("appDetails.installed")
 						: installStatus === "installing"
-							? "Installing..."
-							: "Instalar"}
+							? t("appDetails.installing")
+							: t("appDetails.install")}
 				</Button>
 			</Box>
 
@@ -266,7 +269,7 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 				{installStatus === "installing" ? (
 					<>
 						<Typography variant="h6" gutterBottom textAlign="center">
-							Instalación en progreso
+							{t("appDetails.installationInProgress")}
 						</Typography>
 						<Terminal output={installOutput} isRunning={isInstalling} />
 					</>
@@ -298,8 +301,8 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 						{/* Mensaje */}
 						<Typography variant="h5" textAlign="center">
 							{installStatus === "success"
-								? "¡Instalación completada exitosamente!"
-								: "Error en la instalación"}
+								? t("appDetails.installationCompleted")
+								: t("appDetails.installationError")}
 						</Typography>
 
 						{/* Botones */}
@@ -309,17 +312,17 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 								onClick={handleDownloadLog}
 								sx={{ px: 3 }}
 							>
-								Obtener log
+								{t("appDetails.getLog")}
 							</Button>
 							<Button variant="contained" onClick={handleAccept} sx={{ px: 3 }}>
-								Aceptar
+								{t("appDetails.accept")}
 							</Button>
 						</Box>
 					</Box>
 				) : (
 					<>
 						<Typography variant="h6" gutterBottom textAlign="center">
-							Capturas de pantalla
+							{t("appDetails.screenshots")}
 						</Typography>
 						{isLoadingScreenshots ? (
 							<Box
@@ -481,7 +484,7 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 									color: "text.secondary",
 								}}
 							>
-								<Typography>No hay capturas de pantalla disponibles</Typography>
+								<Typography>{t("appDetails.noScreenshots")}</Typography>
 							</Box>
 						)}
 					</>
@@ -492,7 +495,7 @@ export const AppDetails = ({ app, onBack }: AppDetailsProps) => {
 			{app.description && (
 				<Box sx={{ mt: 4 }}>
 					<Typography variant="h6" gutterBottom>
-						Acerca de esta aplicación
+						{t("appDetails.aboutThisApp")}
 					</Typography>
 					<Typography variant="body1" color="text.secondary">
 						{stripHtml(app.description)}

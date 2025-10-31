@@ -13,6 +13,7 @@ import {
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { CachedImage } from "../../components/CachedImage";
 import { ReleaseNotesModal } from "../../components/ReleaseNotesModal";
 import { Terminal } from "../../components/Terminal";
@@ -24,6 +25,7 @@ interface MyAppsProps {
 }
 
 export const MyApps = ({ onBack }: MyAppsProps) => {
+	const { t } = useTranslation();
 	const {
 		getInstalledAppsInfo,
 		hasUpdate,
@@ -48,6 +50,7 @@ export const MyApps = ({ onBack }: MyAppsProps) => {
 	}, [setAvailableUpdates]);
 
 	// Listen to update events
+	// biome-ignore lint/correctness/useExhaustiveDependencies: Event listeners should only be set up once on mount
 	useEffect(() => {
 		const unlistenOutput = listen<string>("install-output", (event) => {
 			setUpdateOutput((prev) => [...prev, event.payload]);
@@ -65,17 +68,17 @@ export const MyApps = ({ onBack }: MyAppsProps) => {
 					setUpdateOutput((prev) => [
 						...prev,
 						"",
-						"✓ Actualización completada exitosamente.",
-						"Recargando lista de actualizaciones...",
+						t("myApps.updateCompletedSuccess"),
+						t("myApps.reloadingUpdateList"),
 					]);
 					// Reload available updates after successful update
 					await reloadAvailableUpdates();
-					setUpdateOutput((prev) => [...prev, "✓ Lista actualizada."]);
+					setUpdateOutput((prev) => [...prev, t("myApps.listUpdated")]);
 				} else {
 					setUpdateOutput((prev) => [
 						...prev,
 						"",
-						`✗ Actualización falló con código: ${event.payload}`,
+						t("myApps.updateFailed", { code: event.payload }),
 					]);
 				}
 			},
@@ -86,7 +89,7 @@ export const MyApps = ({ onBack }: MyAppsProps) => {
 			unlistenError.then((fn) => fn());
 			unlistenCompleted.then((fn) => fn());
 		};
-	}, [reloadAvailableUpdates]);
+	}, []);
 
 	const handleCloseModal = () => {
 		setSelectedAppForNotes(null);
@@ -95,7 +98,7 @@ export const MyApps = ({ onBack }: MyAppsProps) => {
 	const handleUpdate = async (appId: string) => {
 		setUpdatingApp(appId);
 		setIsUpdating(true);
-		setUpdateOutput([`Preparando actualización de ${appId}...`, ""]);
+		setUpdateOutput([t("myApps.preparingUpdate", { appId }), ""]);
 
 		try {
 			await invoke("update_flatpak", { appId });
@@ -104,7 +107,7 @@ export const MyApps = ({ onBack }: MyAppsProps) => {
 			setUpdateOutput((prev) => [
 				...prev,
 				"",
-				`✗ Error al invocar comando: ${error}`,
+				t("myApps.errorInvokingCommand", { error }),
 			]);
 		}
 	};
@@ -131,16 +134,15 @@ export const MyApps = ({ onBack }: MyAppsProps) => {
 						<ArrowBack />
 					</IconButton>
 					<Typography variant="h4" fontWeight="bold">
-						My Apps
+						{t("myApps.title")}
 					</Typography>
 				</Box>
 
 				{/* Installed apps count */}
 				<Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-					{installedApps.length}{" "}
 					{installedApps.length === 1
-						? "aplicación instalada"
-						: "aplicaciones instaladas"}
+						? t("myApps.appInstalled", { count: installedApps.length })
+						: t("myApps.appsInstalled", { count: installedApps.length })}
 				</Typography>
 
 				{/* Apps grid */}
@@ -298,8 +300,8 @@ export const MyApps = ({ onBack }: MyAppsProps) => {
 													}}
 												>
 													{isUpdating && updatingApp === app.appId
-														? "Updating..."
-														: "Update"}
+														? t("appDetails.updating")
+														: t("appDetails.update")}
 												</Button>
 											</Box>
 										)}
@@ -316,10 +318,10 @@ export const MyApps = ({ onBack }: MyAppsProps) => {
 						}}
 					>
 						<Typography variant="h6" color="text.secondary">
-							No tienes aplicaciones instaladas
+							{t("myApps.noAppsInstalledMessage")}
 						</Typography>
 						<Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-							Instala aplicaciones desde la tienda para verlas aquí
+							{t("myApps.installAppsMessage")}
 						</Typography>
 					</Box>
 				)}
@@ -345,13 +347,13 @@ export const MyApps = ({ onBack }: MyAppsProps) => {
 				>
 					<DialogContent>
 						<Typography variant="h6" gutterBottom>
-							Actualizando {updatingApp}
+							{t("myApps.updating", { appId: updatingApp })}
 						</Typography>
 						<Terminal output={updateOutput} isRunning={isUpdating} />
 						{!isUpdating && (
 							<Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
 								<Button variant="contained" onClick={handleCloseUpdateDialog}>
-									Cerrar
+									{t("myApps.closeButton")}
 								</Button>
 							</Box>
 						)}
