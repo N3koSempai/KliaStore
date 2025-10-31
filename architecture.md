@@ -97,7 +97,7 @@ KliaStore implements a two-tier caching system for optimal performance:
 Smart caching system that stores app images locally to reduce bandwidth and improve loading times.
 
 #### Architecture
-- **Location**: `~/.local/share/com.gatorand.klia-store/cacheImages/`
+- **Location**: `~/.local/share/io.github.N3kosempai.klia-store/cacheImages/`
 - **Index File**: `index.json` - Maps `appId` to cached image filename
 - **Image Files**: Named using pattern `{appId}.{extension}`
 
@@ -154,7 +154,7 @@ Automatically detects image type from HTTP `Content-Type` header:
 Intelligent caching system for app data with configurable expiration times to minimize API calls and improve performance.
 
 #### Architecture
-- **Database**: SQLite (`~/.local/share/com.gatorand.klia-store/kliastore.db`)
+- **Database**: SQLite (`~/.local/share/io.github.N3kosempai.klia-store/kliastore.db`)
 - **Tables**:
   - `destacados`: Stores app of the day data (daily cache)
   - `apps_of_the_week`: Stores weekly featured apps (daily cache)
@@ -397,21 +397,21 @@ flatpak install --user flathub org.freedesktop.Sdk.Extension.node20//23.08
 
 #### Build Process
 
-The Flatpak build is configured in `com.gatorand.klia-store.yml` manifest file.
+The Flatpak build is configured in `io.github.N3kosempai.klia-store.yml` manifest file.
 
 **Build command:**
 ```bash
-flatpak-builder --user --install --force-clean build-dir com.gatorand.klia-store.yml
+flatpak-builder --user --install --force-clean build-dir io.github.N3kosempai.klia-store.yml
 ```
 
 **Run the Flatpak:**
 ```bash
-flatpak run com.gatorand.klia-store
+flatpak run io.github.N3kosempai.klia-store
 ```
 
 **Create distributable bundle:**
 ```bash
-flatpak build-bundle ~/.local/share/flatpak/repo klia-store.flatpak com.gatorand.klia-store
+flatpak build-bundle ~/.local/share/flatpak/repo klia-store.flatpak io.github.N3kosempai.klia-store
 ```
 
 #### Build Configuration

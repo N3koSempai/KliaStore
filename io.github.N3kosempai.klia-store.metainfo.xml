@@ -18,12 +18,21 @@
     <screenshot type="default">
       <image>https://raw.githubusercontent.com/N3koSempai/KliaStore/master/screenshots/screenshot1.png</image>
     </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/N3koSempai/KliaStore/master/screenshots/screenshot2.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/N3koSempai/KliaStore/master/screenshots/screenshot3.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/N3koSempai/KliaStore/master/screenshots/screenshot4.png</image>
+    </screenshot>
   </screenshots>
   <provides>
     <binary>klia-store</binary>
   </provides>
   <releases>
-    <release version="1.0.0" date="2025-10-18"/>
+    <release version="1.0.1" date="2025-10-18"/>
   </releases>
   <content_rating type="oars-1.1"/>
 </component>
