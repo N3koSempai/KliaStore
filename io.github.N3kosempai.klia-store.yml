@@ -32,15 +32,12 @@ modules:
       env:
         XDG_CACHE_HOME: /run/build/klia-store/cache
         CARGO_HOME: /run/build/klia-store/cargo
-        npm_config_cache: /run/build/klia-store/npm-cache
+        npm_config_cache: /run/build/klia-store/flatpak-node/npm-cache
         npm_config_prefix: /run/build/klia-store/npm-global
         CI: 'true'
         TAURI_PLATFORM_TYPE: 'Linux'
         TAURI_ENV_PRODUCTION: 'true'
     build-commands:
-      # Verify npm cache is populated
-      - npm cache verify
-
       # Install dependencies including devDependencies with npm using offline sources
       - npm install --offline --no-save --include=dev
 
@@ -65,5 +62,5 @@ modules:
     sources:
       - type: dir
         path: .
-      - generated-sources.json
-      - cargo-sources.json
+      - ./generated-sources.json
+      - ./cargo-sources.json
