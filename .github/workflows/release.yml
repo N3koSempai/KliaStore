@@ -47,11 +47,6 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.13.1
-
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
@@ -70,10 +65,10 @@ jobs:
             librsvg2-dev
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm install
 
       - name: Build Tauri .deb
-        run: pnpm tauri build --bundles deb
+        run: npm run tauri build -- --bundles deb
 
       - name: Rename .deb file
         run: |
